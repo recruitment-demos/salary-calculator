@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>סימולטור שכר</title>
+<style>
+  :root{
+    --bg:#f4f6fa; --panel:#ffffff; --ink:#16202e; --muted:#5d6b80;
+    --line:#dfe5ee; --accent:#1f5fbf; --accent-soft:#e8f0fd;
+    --good:#0d7a54; --warn:#8a5a00; --warn-bg:#fff6e2; --warn-line:#f0d9a8;
+    --shadow:0 1px 2px rgba(16,32,64,.06), 0 8px 24px rgba(16,32,64,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f151d; --panel:#161e29; --ink:#e6ecf5; --muted:#94a3b8;
+      --line:#26303e; --accent:#6ea8fe; --accent-soft:#1a2740;
+      --good:#4ade9f; --warn:#f5c66a; --warn-bg:#2a2113; --warn-line:#4a3a1a;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",Rubik,Arial,system-ui,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px}
+  header.top{margin-bottom:22px}
+  header.top h1{margin:0 0 4px;font-size:1.6rem;letter-spacing:-.2px}
+  header.top p{margin:0;color:var(--muted);font-size:.92rem}
+
+  .tabs{display:flex;gap:6px;margin:18px 0 20px;flex-wrap:wrap}
+  .tab{
+    padding:9px 18px;border:1px solid var(--line);background:var(--panel);
+    border-radius:999px;cursor:pointer;font-size:.92rem;color:var(--muted);
+    font-family:inherit;transition:.15s;
+  }
+  .tab:hover{border-color:var(--accent)}
+  .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+  .layout{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
+  @media (max-width:860px){.layout{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+        padding:20px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 16px;font-size:1rem;letter-spacing:.01em}
+
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:5px;font-weight:600}
+  select,input[type=number]{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+    background:var(--bg);color:var(--ink);font-size:.93rem;font-family:inherit;
+  }
+  select:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+
+  .sen-head{display:flex;justify-content:space-between;align-items:baseline}
+  .sen-val{font-weight:700;color:var(--accent);font-size:.95rem}
+  .ticks{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:2px}
+
+  .switch{display:flex;align-items:center;gap:9px;padding:9px 0;cursor:pointer;font-size:.9rem}
+  .switch input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;flex:none}
+  .switch span small{display:block;color:var(--muted);font-size:.76rem;line-height:1.35}
+
+  .hr{height:1px;background:var(--line);margin:16px 0}
+
+  .headline{
+    background:linear-gradient(135deg,var(--accent-soft),transparent);
+    border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px
+  }
+  .headline .lbl{font-size:.82rem;color:var(--muted);font-weight:600}
+  .big{font-size:2.5rem;font-weight:800;letter-spacing:-1px;line-height:1.15;margin:2px 0}
+  .sub{color:var(--muted);font-size:.88rem}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;
+        padding:3px 11px;font-size:.76rem;color:var(--muted)}
+
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:right;padding:9px 6px;border-bottom:1px solid var(--line)}
+  th{font-size:.78rem;color:var(--muted);font-weight:600}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+  tr.total td{border-top:2px solid var(--line);border-bottom:none;font-weight:800;font-size:1rem;padding-top:12px}
+  tr.minus td.num{color:var(--warn)}
+  .note{font-size:.76rem;color:var(--muted);font-weight:400;display:block;margin-top:2px}
+
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn);
+        border-radius:10px;padding:11px 13px;font-size:.85rem;margin-top:12px}
+  .warn b{display:block;margin-bottom:2px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:640px){.grid2{grid-template-columns:1fr}}
+
+  .chart{width:100%;height:auto;display:block;overflow:visible}
+  .chart .grid-line{stroke:var(--line);stroke-width:1}
+  .chart .curve{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round}
+  .chart .area{fill:var(--accent);opacity:.09}
+  .chart .dot{fill:var(--panel);stroke:var(--accent);stroke-width:2.5}
+  .chart .dot.here{fill:var(--accent)}
+  .chart text{fill:var(--muted);font-size:11px;font-family:inherit}
+
+  .scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  footer{margin-top:26px;color:var(--muted);font-size:.8rem;line-height:1.7}
+  .err{color:#b42318;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>סימולטור שכר</h1>
+    <p>מחשבון המבוסס על טבלאות הסימולציה הרשמיות שבתיקיית «נתונים למערכת». כל ערך בנקודת ותק מלאה זהה למקור; ותק ביניים מחושב באינטרפולציה.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-track="field"   aria-selected="true">מקצועות שטח</button>
+    <button class="tab" role="tab" data-track="manager" aria-selected="false">מנהלים</button>
+    <button class="tab" role="tab" data-track="lod"     aria-selected="false">יס"מ תחנת לוד</button>
+  </div>
+
+  <div class="layout">
+    <!-- ============ קלט ============ -->
+    <div class="card" id="inputs">
+      <h2>נתוני העובד</h2>
+
+      <div data-for="field">
+        <div class="field">
+          <label for="profession">מקצוע</label>
+          <select id="profession"></select>
+        </div>
+        <div class="field">
+          <label for="district">מחוז</label>
+          <select id="district"></select>
+        </div>
+        <div class="field">
+          <label for="activity">רמת פעילות</label>
+          <select id="activity"></select>
+        </div>
+      </div>
+
+      <div data-for="manager" hidden>
+        <div class="field">
+          <label for="mgroup">קבוצת שכר</label>
+          <select id="mgroup"></select>
+        </div>
+        <div class="field">
+          <label for="mrating">דירוג שכר</label>
+          <select id="mrating"></select>
+        </div>
+      </div>
+
+      <div data-for="lod" hidden>
+        <div class="field">
+          <label for="lodrow">רמת רובאות</label>
+          <select id="lodrow"></select>
+        </div>
+        <p class="sub">נתוני תחנת לוד תקפים לוותק 2.8 שנים בלבד.</p>
+      </div>
+
+      <div class="field" data-for="field manager" id="senBox">
+        <div class="sen-head">
+          <label for="seniority" style="margin:0">ותק</label>
+          <span class="sen-val" id="senVal">0 שנים</span>
+        </div>
+        <input type="range" id="seniority" min="0" max="6" step="0.25" value="0">
+        <div class="ticks"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+      </div>
+
+      <div class="field">
+        <label for="gemul">גמול השתלמות</label>
+        <select id="gemul">
+          <option value="no_gemul">ללא גמול השתלמות</option>
+          <option value="gemul_a">כולל גמול השתלמות א'</option>
+        </select>
+      </div>
+
+      <div class="hr"></div>
+
+      <label class="switch" data-for="field">
+        <input type="checkbox" id="station">
+        <span>שירות בתחנה
+          <small>מוסיף בל"מ ייעודי תחנות</small></span>
+      </label>
+
+      <label class="switch" data-for="field">
+        <input type="checkbox" id="noExpenses">
+        <span>הצג ללא הוצאות אישיות
+          <small>ניכוי החזר הוצאות (מתועד לדרגת רס"ר)</small></span>
+      </label>
+
+      <label class="switch">
+        <input type="checkbox" id="wantNet">
+        <span>הצג אומדן נטו
+          <small>אומדן כללי — לא תחליף לתלוש</small></span>
+      </label>
+
+      <div class="field" id="cpBox" hidden>
+        <label for="creditPoints">נקודות זיכוי</label>
+        <input type="number" id="creditPoints" value="2.25" min="0" max="12" step="0.25">
+      </div>
+    </div>
+
+    <!-- ============ פלט ============ -->
+    <div>
+      <div class="headline">
+        <div class="lbl" id="resTitle">—</div>
+        <div class="big" id="resAmount">—</div>
+        <div class="sub" id="resBasis">—</div>
+        <div class="chips" id="resChips"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px">
+        <h2>פירוט החישוב</h2>
+        <div class="scroller"><table id="breakdown"><tbody></tbody></table></div>
+        <div id="notices"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>התקדמות לפי ותק</h2>
+          <svg class="chart" id="chart" viewBox="0 0 420 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="גרף שכר לפי ותק"></svg>
+          <p class="sub" id="chartNote" style="margin:8px 0 0"></p>
+        </div>
+
+        <div class="card">
+          <h2>נקודות עוגן מהמקור</h2>
+          <div class="scroller"><table id="anchors"><tbody></tbody></table></div>
+          <p class="sub" style="margin:10px 0 0">ערכים אלה מופיעים ככתבם בקבצי הסימולציה.</p>
+        </div>
+      </div>
+
+      <div class="card" id="netCard" style="margin-top:18px" hidden>
+        <h2>אומדן נטו</h2>
+        <div class="scroller"><table id="netTable"><tbody></tbody></table></div>
+        <div class="warn" id="netDisclaimer"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <b>מקורות:</b> <span id="srcList"></span><br>
+    נתוני מקצועות השטח מוצגים כולל הוצאות אישיות; נתוני המנהלים ותחנת לוד — ללא הוצאות אישיות.
+    ותק שאינו נקודת עוגן מחושב באינטרפולציה לינארית; מעבר לוותק המרבי בנתונים התוצאה היא אקסטרפולציה ומסומנת כהערכה.
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/;
+
+/* ---------- כלי עזר ---------- */
+const $ = id => document.getElementById(id);
+const fmt = n => new Intl.NumberFormat('he-IL',{maximumFractionDigits:0}).format(Math.round(n)) + ' ₪';
+const GEMUL_LABELS = {no_gemul:'ללא גמול השתלמות', gemul_a:"כולל גמול השתלמות א'"};
+const EXPENSE_REIMBURSEMENT = {'רס"ר':344};
+
+/* ---------- אינטרפולציה (תואם salary_calc/engine.py) ---------- */
+function interpolate(series, x){
+  const xs = Object.keys(series).map(Number).sort((a,b)=>a-b);
+  if(!xs.length) throw new Error('אין נתוני ותק');
+  if(xs.length===1) return {value:series[xs[0]], estimated:x!==xs[0]};
+  if(x<=xs[0])  return {value:series[xs[0]], estimated:x<xs[0]};
+  if(x>=xs[xs.length-1]){
+    const x1=xs[xs.length-1];
+    if(x===x1) return {value:series[x1], estimated:false};
+    const x0=xs[xs.length-2];
+    const slope=(series[x1]-series[x0])/(x1-x0);
+    return {value:series[x1]+slope*(x-x1), estimated:true};
+  }
+  for(let i=0;i<xs.length-1;i++){
+    const a=xs[i], b=xs[i+1];
+    if(x>=a && x<=b){
+      const t=(x-a)/(b-a);
+      return {value:series[a]+t*(series[b]-series[a]), estimated:false};
+    }
+  }
+  throw new Error('ותק מחוץ לטווח');
+}
+
+function seriesOf(record, gemul){
+  const s={};
+  for(const [k,v] of Object.entries(record.by_seniority)){
+    if(v[gemul]!=null) s[Number(k)]=v[gemul];
+  }
+  return s;
+}
+const rankFamily = txt => ['רס"ר','רס"ל'].find(f=>(txt||'').includes(f)) || '';
+
+/* ---------- חישוב ---------- */
+function calcField(o){
+  const rec = DATA.field.find(v=>v.profession_id===o.profession && v.district===o.district && v.activity_level===o.activity);
+  if(!rec) throw new Error('אין סימולציה עבור הצירוף הזה');
+  const series = seriesOf(rec, o.gemul);
+  const {value, estimated} = interpolate(series, o.seniority);
+
+  const comps=[{label:`בסיס — ${rec.profession} (${rec.activity_level}, ${rec.district})`, amount:value,
+                note:'עוגני ותק: '+Object.entries(series).map(([k,v])=>`${k}=${fmt(v)}`).join(' · ')}];
+  const warnings=[];
+  if(estimated) warnings.push(`ותק ${o.seniority} חורג מהעוגן המרבי בנתונים (${Math.max(...Object.keys(series).map(Number))}) — הערך חושב באקסטרפולציה ומהווה הערכה.`);
+
+  if(o.station){
+    const up = DATA.jerusalem.station_uplift.station_dedicated_blm;
+    comps.push({label:'בל"מ ייעודי תחנות (שירות בתחנה)', amount:up, note:`תוספת מתועדת של ${fmt(up)} לשוטרי תחנה`});
+    if(rec.district!=='ירושלים') warnings.push('תוספת בל"מ ייעודי תחנות מתועדת בנתוני מחוז ירושלים בלבד; היישום למחוזות אחרים הוא הנחה.');
+  }
+
+  let basis='כולל הוצאות אישיות';
+  if(o.noExpenses){
+    const amt = EXPENSE_REIMBURSEMENT[rankFamily(rec.rank || rec.notes)];
+    if(amt==null) warnings.push('החזר ההוצאות האישיות מתועד לדרגת רס"ר בלבד; לא ניתן לנכות אותו עבור הרשומה הזו — התוצאה נותרה כוללת הוצאות.');
+    else { comps.push({label:'ניכוי החזר הוצאות אישיות', amount:-amt, note:'מתועד לדרגת רס"ר'}); basis='ללא הוצאות אישיות'; }
+  }
+
+  return {
+    total: comps.reduce((s,c)=>s+c.amount,0), components:comps, basis, series, estimated, warnings,
+    title:`${rec.profession} · ${rec.district} · רמת פעילות ${rec.activity_level}`,
+    chips:[rec.framework, rec.rank && `דרגת שכר ${rec.rank}`, rec.notes, `קבוצת שכר ${rec.salary_group}`,
+           GEMUL_LABELS[o.gemul], `ותק ${o.seniority}`, o.station && 'שירות בתחנה'].filter(Boolean)
+  };
+}
+
+function calcManager(o){
+  const rec = DATA.managers.find(m=>m.salary_group===o.group && m.rating===o.rating);
+  if(!rec) throw new Error('אין סימולציה עבור הצירוף הזה');
+  const series = seriesOf(rec, o.gemul);
+  const {value, estimated} = interpolate(series, o.seniority);
+  const warnings=[];
+  if(estimated) warnings.push(`ותק ${o.seniority} חורג מהעוגן המרבי בנתונים (${Math.max(...Object.keys(series).map(Number))}) — הערך חושב באקסטרפולציה ומהווה הערכה.`);
+  return {
+    total:value, basis:'ללא הוצאות אישיות', series, estimated, warnings,
+    components:[{label:`בסיס — מנהלים, קבוצת שכר ${rec.salary_group}`, amount:value,
+                 note:`${rec.rating} · רמת פעילות ${rec.activity_level} · דרגת שכר ${rec.rank}`}],
+    title:`מנהלים · קבוצת שכר ${rec.salary_group} · ${rec.rating}`,
+    chips:[`רמת פעילות ${rec.activity_level}`, `דרגת שכר ${rec.rank}`, GEMUL_LABELS[o.gemul], `ותק ${o.seniority}`]
+  };
+}
+
+function calcLod(o){
+  const rec = DATA.lod_yasam[o.index];
+  const amt = rec[o.gemul];
+  if(amt==null) throw new Error('אין נתון עבור מצב הגמול הזה');
+  return {
+    total:amt, basis:'לא כולל הוצאות אישיות', series:{2.8:amt}, estimated:false,
+    warnings:['נתוני תחנת לוד תקפים לוותק 2.8 שנים בלבד ולתחנה זו בלבד.'],
+    components:[{label:`סייר יס"מ תחנת לוד — ${rec.rifleman_level}`, amount:amt,
+                 note:`רמת פעילות ${rec.activity_level} · דרגת שכר ${rec.rank}`}],
+    title:`סייר יס"מ · תחנת לוד · ${rec.rifleman_level}`,
+    chips:[`רמת פעילות ${rec.activity_level}`, `דרגת שכר ${rec.rank}`, GEMUL_LABELS[o.gemul], 'ותק 2.8']
+  };
+}
+
+/* ---------- אומדן נטו (תואם salary_calc/tax.py) ---------- */
+const TAX = DATA.tax_params;
+function progressive(amount, brackets){
+  let tax=0, prev=0;
+  for(const b of brackets){
+    const cap = b.up_to==null ? Infinity : b.up_to;
+    if(amount<=prev) break;
+    tax += (Math.min(amount,cap)-prev)*b.rate;
+    prev = cap;
+  }
+  return tax;
+}
+function estimateNet(gross, cp){
+  const creditValue = cp*TAX.credit_point_value;
+  const incomeTax = Math.max(0, progressive(gross, TAX.income_tax_brackets)-creditValue);
+  const capped = Math.min(gross, TAX.ni_ceiling);
+  const low = Math.min(capped, TAX.ni_reduced_threshold);
+  const high = Math.max(0, capped-TAX.ni_reduced_threshold);
+  const ni = low*TAX.ni_rate_reduced + high*TAX.ni_rate_full;
+  const health = low*TAX.health_rate_reduced + high*TAX.health_rate_full;
+  return {incomeTax, ni, health, creditValue, net:gross-incomeTax-ni-health};
+}
+
+/* ---------- מצב ותפריטים ---------- */
+let track='field';
+const opt = (v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t;return o;};
+
+function fillProfessions(){
+  const seen=new Map();
+  DATA.field.forEach(v=>{ if(!seen.has(v.profession_id)) seen.set(v.profession_id,v); });
+  $('profession').replaceChildren(...[...seen.values()].map(v=>
+    opt(v.profession_id, v.profession + (v.framework?` — ${v.framework}`:''))));
+}
+function fillDistricts(){
+  const pid=$('profession').value;
+  const ds=[...new Set(DATA.field.filter(v=>v.profession_id===pid).map(v=>v.district))];
+  const keep=$('district').value;
+  $('district').replaceChildren(...ds.map(d=>opt(d,d)));
+  if(ds.includes(keep)) $('district').value=keep;
+}
+function fillActivities(){
+  const pid=$('profession').value, d=$('district').value;
+  const rows=DATA.field.filter(v=>v.profession_id===pid && v.district===d);
+  const keep=$('activity').value;
+  $('activity').replaceChildren(...rows.map(v=>opt(v.activity_level, v.activity_level+(v.notes?` (${v.notes})`:''))));
+  if(rows.some(v=>v.activity_level===keep)) $('activity').value=keep;
+}
+function fillManagers(){
+  const groups=[...new Set(DATA.managers.map(m=>m.salary_group))].sort((a,b)=>a-b);
+  $('mgroup').replaceChildren(...groups.map(g=>opt(g,`קבוצת שכר ${g}`)));
+  const ratings=[...new Set(DATA.managers.map(m=>m.rating))];
+  $('mrating').replaceChildren(...ratings.map(r=>opt(r,r)));
+}
+function fillLod(){
+  $('lodrow').replaceChildren(...DATA.lod_yasam.map((r,i)=>opt(i, r.rifleman_level)));
+}
+
+function showTrack(t){
+  track=t;
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.track===t)));
+  document.querySelectorAll('[data-for]').forEach(el=>{
+    el.hidden = !el.dataset.for.split(' ').includes(t);
+  });
+  render();
+}
+
+/* ---------- ציור הגרף ---------- */
+function drawChart(series, currentX, currentY){
+  const svg=$('chart'), W=420, H=220, P={t:16,r:14,b:30,l:56};
+  const xs=Object.keys(series).map(Number).sort((a,b)=>a-b);
+  const maxX=Math.max(...xs, currentX), minX=Math.min(...xs,0);
+  const pts=[];
+  const steps=48;
+  for(let i=0;i<=steps;i++){
+    const x=minX+(maxX-minX)*i/steps;
+    pts.push([x, interpolate(series,x).value]);
+  }
+  const ys=pts.map(p=>p[1]).concat([currentY]);
+  let lo=Math.min(...ys), hi=Math.max(...ys);
+  const pad=(hi-lo)*0.25 || 200; lo-=pad; hi+=pad;
+
+  const sx=x=> P.l + (maxX-minX===0?0:(x-minX)/(maxX-minX))*(W-P.l-P.r);
+  const sy=y=> P.t + (1-(y-lo)/(hi-lo))*(H-P.t-P.b);
+
+  const line=pts.map((p,i)=>`${i?'L':'M'}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(' ');
+  const area=`${line} L${sx(maxX).toFixed(1)},${sy(lo).toFixed(1)} L${sx(minX).toFixed(1)},${sy(lo).toFixed(1)} Z`;
+
+  let g='';
+  for(let i=0;i<=3;i++){
+    const y=lo+(hi-lo)*i/3, py=sy(y).toFixed(1);
+    g+=`<line class="grid-line" x1="${P.l}" y1="${py}" x2="${W-P.r}" y2="${py}"/>`
+     + `<text x="${P.l-8}" y="${(+py+4).toFixed(1)}" text-anchor="end">${Math.round(y).toLocaleString('he-IL')}</text>`;
+  }
+  let ax='';
+  xs.forEach(x=>{ ax+=`<text x="${sx(x).toFixed(1)}" y="${H-P.b+18}" text-anchor="middle">${x}</text>`; });
+  let dots=xs.map(x=>`<circle class="dot" cx="${sx(x).toFixed(1)}" cy="${sy(series[x]).toFixed(1)}" r="3.5"/>`).join('');
+  dots+=`<circle class="dot here" cx="${sx(currentX).toFixed(1)}" cy="${sy(currentY).toFixed(1)}" r="5"/>`;
+
+  svg.innerHTML = g
+    + `<path class="area" d="${area}"/><path class="curve" d="${line}"/>`
+    + ax + dots
+    + `<text x="${(W-P.r)}" y="${H-4}" text-anchor="end">ותק (שנים)</text>`;
+}
+
+/* ---------- רינדור ---------- */
+function render(){
+  $('senVal').textContent = `${(+$('seniority').value)} שנים`;
+  $('cpBox').hidden = !$('wantNet').checked;
+
+  let r;
+  try{
+    const gemul=$('gemul').value, seniority=+$('seniority').value;
+    if(track==='field'){
+      fillDistricts(); fillActivities();
+      r = calcField({profession:$('profession').value, district:$('district').value,
+                     activity:$('activity').value, seniority, gemul,
+                     station:$('station').checked, noExpenses:$('noExpenses').checked});
+    } else if(track==='manager'){
+      r = calcManager({group:+$('mgroup').value, rating:$('mrating').value, seniority, gemul});
+    } else {
+      r = calcLod({index:+$('lodrow').value, gemul});
+    }
+  }catch(e){
+    $('resTitle').textContent='שגיאה';
+    $('resAmount').innerHTML=`<span class="err">${e.message}</span>`;
+    $('resBasis').textContent=''; $('resChips').replaceChildren();
+    return;
+  }
+
+  $('resTitle').textContent = r.title;
+  $('resAmount').textContent = fmt(r.total) + (r.estimated ? ' *' : '');
+  $('resBasis').textContent = `ברוטו חודשי (${r.basis}) · שנתי ${fmt(r.total*12)}`;
+  $('resChips').replaceChildren(...r.chips.map(c=>{
+    const s=document.createElement('span'); s.className='chip'; s.textContent=c; return s;}));
+
+  /* פירוט */
+  const tb=$('breakdown').querySelector('tbody'); tb.replaceChildren();
+  r.components.forEach(c=>{
+    const tr=tb.insertRow(); if(c.amount<0) tr.className='minus';
+    tr.insertCell().innerHTML = `${c.label}${c.note?`<span class="note">${c.note}</span>`:''}`;
+    const td=tr.insertCell(); td.className='num'; td.textContent=(c.amount<0?'− ':'')+fmt(Math.abs(c.amount));
+  });
+  const tr=tb.insertRow(); tr.className='total';
+  tr.insertCell().textContent='סה"כ ברוטו חודשי';
+  const td=tr.insertCell(); td.className='num'; td.textContent=fmt(r.total);
+
+  /* התראות */
+  const nb=$('notices'); nb.replaceChildren();
+  r.warnings.forEach(w=>{
+    const d=document.createElement('div'); d.className='warn'; d.innerHTML=`<b>שים לב</b>${w}`; nb.appendChild(d);
+  });
+
+  /* עוגנים */
+  const ab=$('anchors').querySelector('tbody'); ab.replaceChildren();
+  const hr=ab.insertRow();
+  ['ותק (שנים)','סכום מהמקור'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+  Object.keys(r.series).map(Number).sort((a,b)=>a-b).forEach(k=>{
+    const row=ab.insertRow();
+    row.insertCell().textContent=k;
+    const c=row.insertCell(); c.className='num'; c.textContent=fmt(r.series[k]);
+  });
+
+  /* גרף — מצייר את סדרת הבסיס מהמקור ומסמן עליה את הוותק שנבחר.
+     התוספות (בל"מ תחנות / ניכוי הוצאות) אינן חלק מסדרת המקור ולכן אינן על העקומה. */
+  const curX = track==='lod' ? 2.8 : +$('seniority').value;
+  drawChart(r.series, curX, interpolate(r.series, curX).value);
+  const anchorsMax=Math.max(...Object.keys(r.series).map(Number));
+  $('chartNote').textContent = r.estimated
+    ? `הנקודה הנוכחית מעבר לעוגן האחרון (${anchorsMax}) — אקסטרפולציה.`
+    : 'הנקודה המלאה מציינת את הוותק שנבחר; העיגולים הריקים הם נתוני המקור.';
+
+  /* נטו */
+  const wantNet=$('wantNet').checked;
+  $('netCard').hidden=!wantNet;
+  if(wantNet){
+    const cp=+$('creditPoints').value||0;
+    const t=estimateNet(r.total, cp);
+    const ntb=$('netTable').querySelector('tbody'); ntb.replaceChildren();
+    const rows=[['ברוטו חודשי', r.total],[`מס הכנסה (אחרי ${cp} נק' זיכוי)`, -t.incomeTax],
+                ['ביטוח לאומי', -t.ni],['ביטוח בריאות', -t.health]];
+    rows.forEach(([l,v])=>{
+      const tr=ntb.insertRow(); if(v<0) tr.className='minus';
+      tr.insertCell().textContent=l;
+      const c=tr.insertCell(); c.className='num'; c.textContent=(v<0?'− ':'')+fmt(Math.abs(v));
+    });
+    const t2=ntb.insertRow(); t2.className='total';
+    t2.insertCell().textContent='נטו משוער';
+    const c2=t2.insertCell(); c2.className='num'; c2.textContent=fmt(t.net);
+    $('netDisclaimer').innerHTML=`<b>אומדן בלבד (${TAX.year})</b>${TAX.disclaimer}`;
+  }
+}
+
+/* ---------- אתחול ---------- */
+fillProfessions(); fillDistricts(); fillActivities(); fillManagers(); fillLod();
+$('srcList').textContent = DATA.meta.source_files.join(' · ');
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTrack(b.dataset.track)));
+$('profession').addEventListener('change',()=>{ $('district').value=''; $('activity').value=''; render(); });
+['district','activity','gemul','mgroup','mrating','lodrow','seniority','station','noExpenses','wantNet','creditPoints']
+  .forEach(id=>$(id).addEventListener('input', render));
+showTrack('field');
+</script>
+</body>
+</html>

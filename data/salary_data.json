@@ -1,0 +1,1462 @@
+{
+  "meta": {
+    "source_dir": "נתונים למערכת",
+    "source_files": [
+      "מצגת רפרנטים 28.5.25 - שלוש שנים וותק.pptx",
+      "סייר יס\"מ - תחנת לוד.pptx",
+      "סימולציות - מצגת לרפרנטים וותק של שנה 1.pptx",
+      "סימולציות - מצגת לרפרנטים וותק של שנתיים.pptx",
+      "סימולציות - מצגת לרפרנטים ללא וותק.pptx",
+      "סימולציות מחוז ירושלים 14.7.2025.docx",
+      "סימולציות מנהלי ללא וותק.pptx",
+      "סימולציות מנהלי שנה וותק.pptx",
+      "סימולציות מנהלי שנתיים וותק.pptx",
+      "סימולציות מנהלי שנתיים ושמונה.pptx"
+    ],
+    "generated_by": "tools/build_dataset.py",
+    "field_basis": "כולל הוצאות אישיות",
+    "manager_basis": "ללא הוצאות אישיות",
+    "lod_basis": "לא כולל הוצאות אישיות",
+    "assumptions": [
+      "השכלה תיכונית",
+      "שירות צבאי (צה\"ל חובה) נלקח בחשבון בסימולציות מחוז ירושלים"
+    ],
+    "expense_reimbursement": {
+      "רס\"ר": 344
+    },
+    "gemul_levels": {
+      "no_gemul": "ללא גמול השתלמות",
+      "gemul_a": "כולל גמול השתלמות א'"
+    }
+  },
+  "field": [
+    {
+      "profession_id": "patrol_detective_kapaz",
+      "profession": "סייר / בלש (סיור ובילוש)",
+      "framework": "במסגרת קפ\"ז תחנות",
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "שיטור חדש",
+      "rank": "רס\"ר 0",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 11312,
+          "gemul_a": 13237
+        },
+        "1": {
+          "no_gemul": 11399,
+          "gemul_a": 13324
+        },
+        "2": {
+          "no_gemul": 11488,
+          "gemul_a": 13413
+        },
+        "3": {
+          "no_gemul": 11578,
+          "gemul_a": 13503
+        }
+      }
+    },
+    {
+      "profession_id": "patrol_detective_kapaz",
+      "profession": "סייר / בלש (סיור ובילוש)",
+      "framework": "במסגרת קפ\"ז תחנות",
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "ב'",
+      "rank": "רס\"ר 0",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 11380,
+          "gemul_a": 13339
+        },
+        "1": {
+          "no_gemul": 11468,
+          "gemul_a": 13427
+        },
+        "2": {
+          "no_gemul": 11557,
+          "gemul_a": 13516
+        },
+        "3": {
+          "no_gemul": 11648,
+          "gemul_a": 13607
+        }
+      }
+    },
+    {
+      "profession_id": "patrol_detective_kapaz",
+      "profession": "סייר / בלש (סיור ובילוש)",
+      "framework": "במסגרת קפ\"ז תחנות",
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "א'",
+      "rank": "רס\"ר 0",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 12369,
+          "gemul_a": 14546
+        },
+        "1": {
+          "no_gemul": 12467,
+          "gemul_a": 14644
+        },
+        "2": {
+          "no_gemul": 12566,
+          "gemul_a": 14744
+        },
+        "3": {
+          "no_gemul": 12667,
+          "gemul_a": 14844
+        }
+      }
+    },
+    {
+      "profession_id": "patrol_detective_kapaz",
+      "profession": "סייר / בלש (סיור ובילוש)",
+      "framework": "במסגרת קפ\"ז תחנות",
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "א' +",
+      "rank": "רס\"ר 0",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 13055,
+          "gemul_a": 15384
+        },
+        "1": {
+          "no_gemul": 13160,
+          "gemul_a": 15488
+        },
+        "2": {
+          "no_gemul": 13266,
+          "gemul_a": 15595
+        },
+        "3": {
+          "no_gemul": 13374,
+          "gemul_a": 15702
+        }
+      }
+    },
+    {
+      "profession_id": "investigator_kapaz",
+      "profession": "חוקר",
+      "framework": "במסגרת קפ\"ז תחנות",
+      "salary_group": 5,
+      "district": "כל הארץ",
+      "activity_level": "שיטור חדש",
+      "rank": "רס\"ר 0",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10850,
+          "gemul_a": 12674
+        },
+        "1": {
+          "no_gemul": 10932,
+          "gemul_a": 12756
+        },
+        "2": {
+          "no_gemul": 11017,
+          "gemul_a": 12841
+        },
+        "3": {
+          "no_gemul": 11102,
+          "gemul_a": 12926
+        }
+      }
+    },
+    {
+      "profession_id": "investigator_kapaz",
+      "profession": "חוקר",
+      "framework": "במסגרת קפ\"ז תחנות",
+      "salary_group": 5,
+      "district": "כל הארץ",
+      "activity_level": "ב'",
+      "rank": "רס\"ר 0",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10924,
+          "gemul_a": 12782
+        },
+        "1": {
+          "no_gemul": 11007,
+          "gemul_a": 12865
+        },
+        "2": {
+          "no_gemul": 11092,
+          "gemul_a": 12950
+        },
+        "3": {
+          "no_gemul": 11178,
+          "gemul_a": 13036
+        }
+      }
+    },
+    {
+      "profession_id": "investigator_kapaz",
+      "profession": "חוקר",
+      "framework": "במסגרת קפ\"ז תחנות",
+      "salary_group": 5,
+      "district": "כל הארץ",
+      "activity_level": "א +(תחנת חברון)",
+      "rank": "רס\"ר 0",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 12619,
+          "gemul_a": 14852
+        },
+        "1": {
+          "no_gemul": 12719,
+          "gemul_a": 14951
+        },
+        "2": {
+          "no_gemul": 12821,
+          "gemul_a": 15054
+        },
+        "3": {
+          "no_gemul": 12925,
+          "gemul_a": 15157
+        }
+      }
+    },
+    {
+      "profession_id": "patrol_detective",
+      "profession": "סייר / בלש (סיור ובילוש)",
+      "framework": "לא במסגרת קפ\"ז תחנות",
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "שיטור חדש",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9879,
+          "gemul_a": 11778
+        },
+        "1": {
+          "no_gemul": 9960,
+          "gemul_a": 11859
+        },
+        "2": {
+          "no_gemul": 10043,
+          "gemul_a": 11942
+        },
+        "3": {
+          "no_gemul": 10127,
+          "gemul_a": 12026
+        }
+      }
+    },
+    {
+      "profession_id": "patrol_detective",
+      "profession": "סייר / בלש (סיור ובילוש)",
+      "framework": "לא במסגרת קפ\"ז תחנות",
+      "salary_group": 6,
+      "district": "ירושלים",
+      "activity_level": "שיטור חדש",
+      "rank": "",
+      "notes": "רס\"ר 8",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 11322,
+          "gemul_a": 13183
+        },
+        "1": {
+          "no_gemul": 11416,
+          "gemul_a": 13277
+        },
+        "2": {
+          "no_gemul": 11513,
+          "gemul_a": 13374
+        },
+        "3": {
+          "no_gemul": 11610,
+          "gemul_a": 13471
+        }
+      }
+    },
+    {
+      "profession_id": "patrol_detective",
+      "profession": "סייר / בלש (סיור ובילוש)",
+      "framework": "לא במסגרת קפ\"ז תחנות",
+      "salary_group": 6,
+      "district": "ש\"י",
+      "activity_level": "א'",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10932,
+          "gemul_a": 13075
+        },
+        "1": {
+          "no_gemul": 11024,
+          "gemul_a": 13167
+        },
+        "2": {
+          "no_gemul": 11117,
+          "gemul_a": 13260
+        },
+        "3": {
+          "no_gemul": 11211,
+          "gemul_a": 13354
+        }
+      }
+    },
+    {
+      "profession_id": "yasam_patrol",
+      "profession": "סייר יס\"מ",
+      "framework": null,
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "ב'",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10005,
+          "gemul_a": 11933
+        },
+        "1": {
+          "no_gemul": 10087,
+          "gemul_a": 12015
+        },
+        "2": {
+          "no_gemul": 10171,
+          "gemul_a": 12099
+        },
+        "3": {
+          "no_gemul": 10256,
+          "gemul_a": 12184
+        }
+      }
+    },
+    {
+      "profession_id": "yasam_patrol",
+      "profession": "סייר יס\"מ",
+      "framework": null,
+      "salary_group": 6,
+      "district": "ירושלים",
+      "activity_level": "ב'",
+      "rank": "",
+      "notes": "רס\"ר 8",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 11444,
+          "gemul_a": 13329
+        },
+        "1": {
+          "no_gemul": 11539,
+          "gemul_a": 13424
+        },
+        "2": {
+          "no_gemul": 11637,
+          "gemul_a": 13522
+        },
+        "3": {
+          "no_gemul": 11735,
+          "gemul_a": 13620
+        }
+      }
+    },
+    {
+      "profession_id": "yasam_patrol",
+      "profession": "סייר יס\"מ",
+      "framework": null,
+      "salary_group": 6,
+      "district": "דרום",
+      "activity_level": "ב'",
+      "rank": "",
+      "notes": "דרגת שכר רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10670,
+          "gemul_a": 12629
+        },
+        "1": {
+          "no_gemul": 10758,
+          "gemul_a": 12717
+        },
+        "2": {
+          "no_gemul": 10847,
+          "gemul_a": 12806
+        },
+        "3": {
+          "no_gemul": 10938,
+          "gemul_a": 12897
+        }
+      }
+    },
+    {
+      "profession_id": "yasam_patrol",
+      "profession": "סייר יס\"מ",
+      "framework": null,
+      "salary_group": 6,
+      "district": "מתפ\"א",
+      "activity_level": "א'",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10932,
+          "gemul_a": 13075
+        },
+        "1": {
+          "no_gemul": 11024,
+          "gemul_a": 13167
+        },
+        "2": {
+          "no_gemul": 11117,
+          "gemul_a": 13260
+        },
+        "3": {
+          "no_gemul": 11212,
+          "gemul_a": 13354
+        }
+      }
+    },
+    {
+      "profession_id": "yasam_patrol",
+      "profession": "סייר יס\"מ",
+      "framework": null,
+      "salary_group": 6,
+      "district": "ש\"י",
+      "activity_level": "א' +",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 11575,
+          "gemul_a": 13866
+        },
+        "1": {
+          "no_gemul": 11672,
+          "gemul_a": 13964
+        },
+        "2": {
+          "no_gemul": 11772,
+          "gemul_a": 14064
+        },
+        "3": {
+          "no_gemul": 11873,
+          "gemul_a": 14165
+        }
+      }
+    },
+    {
+      "profession_id": "investigator",
+      "profession": "חוקר",
+      "framework": "לא במסגרת קפ\"ז תחנות",
+      "salary_group": 5,
+      "district": "כל הארץ",
+      "activity_level": "שיטור חדש",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9321,
+          "gemul_a": 11091
+        },
+        "1": {
+          "no_gemul": 9397,
+          "gemul_a": 11166
+        },
+        "2": {
+          "no_gemul": 9474,
+          "gemul_a": 11244
+        },
+        "3": {
+          "no_gemul": 9552,
+          "gemul_a": 11322
+        }
+      }
+    },
+    {
+      "profession_id": "investigator",
+      "profession": "חוקר",
+      "framework": "לא במסגרת קפ\"ז תחנות",
+      "salary_group": 5,
+      "district": "ירושלים",
+      "activity_level": "שיטור חדש",
+      "rank": "",
+      "notes": "רס\"ר 8",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10696,
+          "gemul_a": 12435
+        },
+        "1": {
+          "no_gemul": 10784,
+          "gemul_a": 12523
+        },
+        "2": {
+          "no_gemul": 10874,
+          "gemul_a": 12613
+        },
+        "3": {
+          "no_gemul": 10965,
+          "gemul_a": 12704
+        }
+      }
+    },
+    {
+      "profession_id": "investigator",
+      "profession": "חוקר",
+      "framework": "לא במסגרת קפ\"ז תחנות",
+      "salary_group": 5,
+      "district": "ש\"י",
+      "activity_level": "ב'",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9448,
+          "gemul_a": 11247
+        },
+        "1": {
+          "no_gemul": 9525,
+          "gemul_a": 11324
+        },
+        "2": {
+          "no_gemul": 9603,
+          "gemul_a": 11403
+        },
+        "3": {
+          "no_gemul": 9683,
+          "gemul_a": 11482
+        }
+      }
+    },
+    {
+      "profession_id": "investigator",
+      "profession": "חוקר",
+      "framework": "לא במסגרת קפ\"ז תחנות",
+      "salary_group": 5,
+      "district": "ש\"י",
+      "activity_level": "א' +",
+      "rank": "",
+      "notes": "יל\"פ יהודה",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 11027,
+          "gemul_a": 13192
+        },
+        "1": {
+          "no_gemul": 11119,
+          "gemul_a": 13284
+        },
+        "2": {
+          "no_gemul": 11213,
+          "gemul_a": 13378
+        },
+        "3": {
+          "no_gemul": 11309,
+          "gemul_a": 13474
+        }
+      }
+    },
+    {
+      "profession_id": "dispatcher_100",
+      "profession": "מוקדן 100 / משגר",
+      "framework": null,
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "ג'",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9386,
+          "gemul_a": 11171
+        },
+        "1": {
+          "no_gemul": 9462,
+          "gemul_a": 11247
+        },
+        "2": {
+          "no_gemul": 9540,
+          "gemul_a": 11325
+        },
+        "3": {
+          "no_gemul": 9619,
+          "gemul_a": 11404
+        }
+      }
+    },
+    {
+      "profession_id": "dispatcher_100",
+      "profession": "מוקדן 100 / משגר",
+      "framework": null,
+      "salary_group": 6,
+      "district": "ירושלים",
+      "activity_level": "ג'",
+      "rank": "",
+      "notes": "רס\"ר 8",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10842,
+          "gemul_a": 12610
+        },
+        "1": {
+          "no_gemul": 10932,
+          "gemul_a": 12699
+        },
+        "2": {
+          "no_gemul": 11023,
+          "gemul_a": 12790
+        },
+        "3": {
+          "no_gemul": 11115,
+          "gemul_a": 12883
+        }
+      }
+    },
+    {
+      "profession_id": "dispatcher_100",
+      "profession": "מוקדן 100 / משגר",
+      "framework": null,
+      "salary_group": 6,
+      "district": "ש\"י",
+      "activity_level": "שיטור חדש",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9879,
+          "gemul_a": 11778
+        },
+        "1": {
+          "no_gemul": 9960,
+          "gemul_a": 11859
+        },
+        "2": {
+          "no_gemul": 10043,
+          "gemul_a": 11942
+        },
+        "3": {
+          "no_gemul": 10127,
+          "gemul_a": 12026
+        }
+      }
+    },
+    {
+      "profession_id": "magav_fighter",
+      "profession": "לוחם / סייר מג\"ב",
+      "framework": null,
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "ב'",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10005,
+          "gemul_a": 11933
+        },
+        "1": {
+          "no_gemul": 10087,
+          "gemul_a": 12015
+        },
+        "2": {
+          "no_gemul": 10171,
+          "gemul_a": 12099
+        },
+        "3": {
+          "no_gemul": 10256,
+          "gemul_a": 12184
+        }
+      }
+    },
+    {
+      "profession_id": "magav_fighter",
+      "profession": "לוחם / סייר מג\"ב",
+      "framework": null,
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "א'",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10932,
+          "gemul_a": 13075
+        },
+        "1": {
+          "no_gemul": 11024,
+          "gemul_a": 13167
+        },
+        "2": {
+          "no_gemul": 11117,
+          "gemul_a": 13260
+        },
+        "3": {
+          "no_gemul": 11211,
+          "gemul_a": 13354
+        }
+      }
+    },
+    {
+      "profession_id": "magav_fighter",
+      "profession": "לוחם / סייר מג\"ב",
+      "framework": null,
+      "salary_group": 6,
+      "district": "כל הארץ",
+      "activity_level": "א' +",
+      "rank": "",
+      "notes": "",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 11575,
+          "gemul_a": 13866
+        },
+        "1": {
+          "no_gemul": 11672,
+          "gemul_a": 13964
+        },
+        "2": {
+          "no_gemul": 11772,
+          "gemul_a": 14064
+        },
+        "3": {
+          "no_gemul": 11873,
+          "gemul_a": 14165
+        }
+      }
+    }
+  ],
+  "managers": [
+    {
+      "salary_group": 1,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8333,
+          "gemul_a": 8526
+        },
+        "1": {
+          "no_gemul": 8356,
+          "gemul_a": 8548
+        },
+        "2": {
+          "no_gemul": 8378,
+          "gemul_a": 8571
+        },
+        "2.8": {
+          "no_gemul": 8390,
+          "gemul_a": 8582
+        }
+      }
+    },
+    {
+      "salary_group": 1,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8485,
+          "gemul_a": 9008
+        },
+        "1": {
+          "no_gemul": 8508,
+          "gemul_a": 9069
+        },
+        "2": {
+          "no_gemul": 8533,
+          "gemul_a": 9132
+        },
+        "2.8": {
+          "no_gemul": 8545,
+          "gemul_a": 9163
+        }
+      }
+    },
+    {
+      "salary_group": 1,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8396,
+          "gemul_a": 8603
+        },
+        "1": {
+          "no_gemul": 8419,
+          "gemul_a": 8626
+        },
+        "2": {
+          "no_gemul": 8443,
+          "gemul_a": 8650
+        },
+        "2.8": {
+          "no_gemul": 8454,
+          "gemul_a": 8661
+        }
+      }
+    },
+    {
+      "salary_group": 2,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8373,
+          "gemul_a": 8575
+        },
+        "1": {
+          "no_gemul": 8396,
+          "gemul_a": 8597
+        },
+        "2": {
+          "no_gemul": 8419,
+          "gemul_a": 8621
+        },
+        "2.8": {
+          "no_gemul": 8430,
+          "gemul_a": 8632
+        }
+      }
+    },
+    {
+      "salary_group": 2,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8529,
+          "gemul_a": 9351
+        },
+        "1": {
+          "no_gemul": 8554,
+          "gemul_a": 9415
+        },
+        "2": {
+          "no_gemul": 8578,
+          "gemul_a": 9480
+        },
+        "2.8": {
+          "no_gemul": 8591,
+          "gemul_a": 9513
+        }
+      }
+    },
+    {
+      "salary_group": 2,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8439,
+          "gemul_a": 8763
+        },
+        "1": {
+          "no_gemul": 8462,
+          "gemul_a": 8822
+        },
+        "2": {
+          "no_gemul": 8486,
+          "gemul_a": 8882
+        },
+        "2.8": {
+          "no_gemul": 8498,
+          "gemul_a": 8912
+        }
+      }
+    },
+    {
+      "salary_group": 3,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8413,
+          "gemul_a": 8624
+        },
+        "1": {
+          "no_gemul": 8436,
+          "gemul_a": 8647
+        },
+        "2": {
+          "no_gemul": 8459,
+          "gemul_a": 8691
+        },
+        "2.8": {
+          "no_gemul": 8471,
+          "gemul_a": 8720
+        }
+      }
+    },
+    {
+      "salary_group": 3,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8587,
+          "gemul_a": 9794
+        },
+        "1": {
+          "no_gemul": 8612,
+          "gemul_a": 9862
+        },
+        "2": {
+          "no_gemul": 8637,
+          "gemul_a": 9931
+        },
+        "2.8": {
+          "no_gemul": 8650,
+          "gemul_a": 9965
+        }
+      }
+    },
+    {
+      "salary_group": 3,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8481,
+          "gemul_a": 9095
+        },
+        "1": {
+          "no_gemul": 8505,
+          "gemul_a": 9156
+        },
+        "2": {
+          "no_gemul": 8529,
+          "gemul_a": 9219
+        },
+        "2.8": {
+          "no_gemul": 8542,
+          "gemul_a": 9250
+        }
+      }
+    },
+    {
+      "salary_group": 4,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8458,
+          "gemul_a": 8930
+        },
+        "1": {
+          "no_gemul": 8482,
+          "gemul_a": 8990
+        },
+        "2": {
+          "no_gemul": 8506,
+          "gemul_a": 9052
+        },
+        "2.8": {
+          "no_gemul": 8518,
+          "gemul_a": 9082
+        }
+      }
+    },
+    {
+      "salary_group": 4,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8671,
+          "gemul_a": 10245
+        },
+        "1": {
+          "no_gemul": 8742,
+          "gemul_a": 10317
+        },
+        "2": {
+          "no_gemul": 8815,
+          "gemul_a": 10389
+        },
+        "2.8": {
+          "no_gemul": 8852,
+          "gemul_a": 10426
+        }
+      }
+    },
+    {
+      "salary_group": 4,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8530,
+          "gemul_a": 9476
+        },
+        "1": {
+          "no_gemul": 8555,
+          "gemul_a": 9540
+        },
+        "2": {
+          "no_gemul": 8579,
+          "gemul_a": 9606
+        },
+        "2.8": {
+          "no_gemul": 8592,
+          "gemul_a": 9639
+        }
+      }
+    },
+    {
+      "salary_group": 5,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8553,
+          "gemul_a": 9670
+        },
+        "1": {
+          "no_gemul": 8577,
+          "gemul_a": 9736
+        },
+        "2": {
+          "no_gemul": 8602,
+          "gemul_a": 9804
+        },
+        "2.8": {
+          "no_gemul": 8615,
+          "gemul_a": 9837
+        }
+      }
+    },
+    {
+      "salary_group": 5,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9182,
+          "gemul_a": 10868
+        },
+        "1": {
+          "no_gemul": 9258,
+          "gemul_a": 10944
+        },
+        "2": {
+          "no_gemul": 9336,
+          "gemul_a": 11022
+        },
+        "2.8": {
+          "no_gemul": 9376,
+          "gemul_a": 11061
+        }
+      }
+    },
+    {
+      "salary_group": 5,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8632,
+          "gemul_a": 10270
+        },
+        "1": {
+          "no_gemul": 8685,
+          "gemul_a": 10340
+        },
+        "2": {
+          "no_gemul": 8757,
+          "gemul_a": 10413
+        },
+        "2.8": {
+          "no_gemul": 8794,
+          "gemul_a": 10449
+        }
+      }
+    },
+    {
+      "salary_group": 6,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 8676,
+          "gemul_a": 10346
+        },
+        "1": {
+          "no_gemul": 8747,
+          "gemul_a": 10417
+        },
+        "2": {
+          "no_gemul": 8820,
+          "gemul_a": 10490
+        },
+        "2.8": {
+          "no_gemul": 8857,
+          "gemul_a": 10526
+        }
+      }
+    },
+    {
+      "salary_group": 6,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9664,
+          "gemul_a": 11455
+        },
+        "1": {
+          "no_gemul": 9745,
+          "gemul_a": 11536
+        },
+        "2": {
+          "no_gemul": 9828,
+          "gemul_a": 11619
+        },
+        "2.8": {
+          "no_gemul": 9869,
+          "gemul_a": 11661
+        }
+      }
+    },
+    {
+      "salary_group": 6,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9203,
+          "gemul_a": 10994
+        },
+        "1": {
+          "no_gemul": 9279,
+          "gemul_a": 11071
+        },
+        "2": {
+          "no_gemul": 9357,
+          "gemul_a": 11149
+        },
+        "2.8": {
+          "no_gemul": 9397,
+          "gemul_a": 11188
+        }
+      }
+    },
+    {
+      "salary_group": 7,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9079,
+          "gemul_a": 10841
+        },
+        "1": {
+          "no_gemul": 9154,
+          "gemul_a": 10917
+        },
+        "2": {
+          "no_gemul": 9231,
+          "gemul_a": 10994
+        },
+        "2.8": {
+          "no_gemul": 9270,
+          "gemul_a": 11032
+        }
+      }
+    },
+    {
+      "salary_group": 7,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10111,
+          "gemul_a": 12000
+        },
+        "1": {
+          "no_gemul": 10197,
+          "gemul_a": 12086
+        },
+        "2": {
+          "no_gemul": 10284,
+          "gemul_a": 12173
+        },
+        "2.8": {
+          "no_gemul": 10328,
+          "gemul_a": 12217
+        }
+      }
+    },
+    {
+      "salary_group": 7,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9635,
+          "gemul_a": 11526
+        },
+        "1": {
+          "no_gemul": 9716,
+          "gemul_a": 11607
+        },
+        "2": {
+          "no_gemul": 9798,
+          "gemul_a": 11689
+        },
+        "2.8": {
+          "no_gemul": 9840,
+          "gemul_a": 11731
+        }
+      }
+    },
+    {
+      "salary_group": 8,
+      "rating": "אחיד / טכנאי לא ישים / אקדמאי לא ישים",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 9447,
+          "gemul_a": 11295
+        },
+        "1": {
+          "no_gemul": 9526,
+          "gemul_a": 11374
+        },
+        "2": {
+          "no_gemul": 9607,
+          "gemul_a": 11455
+        },
+        "2.8": {
+          "no_gemul": 9647,
+          "gemul_a": 11495
+        }
+      }
+    },
+    {
+      "salary_group": 8,
+      "rating": "אקדמאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ר 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10520,
+          "gemul_a": 12498
+        },
+        "1": {
+          "no_gemul": 10609,
+          "gemul_a": 12587
+        },
+        "2": {
+          "no_gemul": 10701,
+          "gemul_a": 12679
+        },
+        "2.8": {
+          "no_gemul": 10747,
+          "gemul_a": 12725
+        }
+      }
+    },
+    {
+      "salary_group": 8,
+      "rating": "טכנאי ישים 7%",
+      "activity_level": "דריכות",
+      "rank": "רס\"ל 0",
+      "by_seniority": {
+        "0": {
+          "no_gemul": 10030,
+          "gemul_a": 12013
+        },
+        "1": {
+          "no_gemul": 10115,
+          "gemul_a": 12098
+        },
+        "2": {
+          "no_gemul": 10201,
+          "gemul_a": 12184
+        },
+        "2.8": {
+          "no_gemul": 10245,
+          "gemul_a": 12228
+        }
+      }
+    }
+  ],
+  "lod_yasam": [
+    {
+      "rifleman_level": "רובאי 05",
+      "activity_level": "ב'",
+      "rank": "רס\"ר 0",
+      "no_gemul": 11277,
+      "gemul_a": 13236
+    },
+    {
+      "rifleman_level": "ללא רובאי 05 (נדרש להשלמה)",
+      "activity_level": "שיטור חדש",
+      "rank": "רס\"ר 0",
+      "no_gemul": 11207,
+      "gemul_a": 13132
+    }
+  ],
+  "jerusalem": {
+    "roles": [
+      {
+        "role": "בלש",
+        "in_station": false,
+        "rating": "אחיד",
+        "activity_level": "שיטור חדש",
+        "rank": "רס\"ר 8",
+        "by_seniority": {
+          "3": {
+            "no_gemul": 11610,
+            "gemul_a": 13471
+          },
+          "2": {
+            "no_gemul": 11513,
+            "gemul_a": 13374
+          },
+          "1": {
+            "no_gemul": 11417,
+            "gemul_a": 13278
+          },
+          "0": {
+            "no_gemul": 11322,
+            "gemul_a": 13183
+          }
+        }
+      },
+      {
+        "role": "חוקר",
+        "in_station": false,
+        "rating": "אחיד",
+        "activity_level": "שיטור חדש",
+        "rank": "רס\"ר 8",
+        "by_seniority": {
+          "3": {
+            "no_gemul": 10965,
+            "gemul_a": 12704
+          },
+          "2": {
+            "no_gemul": 10874,
+            "gemul_a": 12613
+          },
+          "1": {
+            "no_gemul": 10784,
+            "gemul_a": 12523
+          },
+          "0": {
+            "no_gemul": 10696,
+            "gemul_a": 12435
+          }
+        }
+      },
+      {
+        "role": "חוקר",
+        "in_station": true,
+        "rating": "אחיד",
+        "activity_level": "שיטור חדש",
+        "rank": "רס\"ר 8",
+        "by_seniority": {
+          "3": {
+            "no_gemul": 11675,
+            "gemul_a": 13414
+          },
+          "2": {
+            "no_gemul": 11584,
+            "gemul_a": 13323
+          },
+          "1": {
+            "no_gemul": 11494,
+            "gemul_a": 13233
+          },
+          "0": {
+            "no_gemul": 11406,
+            "gemul_a": 13145
+          }
+        }
+      },
+      {
+        "role": "סייר / בלש",
+        "in_station": true,
+        "rating": "אחיד",
+        "activity_level": "שיטור חדש",
+        "rank": "רס\"ר 8",
+        "by_seniority": {
+          "3": {
+            "no_gemul": 12320,
+            "gemul_a": 14181
+          },
+          "2": {
+            "no_gemul": 12223,
+            "gemul_a": 14084
+          },
+          "1": {
+            "no_gemul": 12126,
+            "gemul_a": 13987
+          },
+          "0": {
+            "no_gemul": 12032,
+            "gemul_a": 13893
+          }
+        }
+      },
+      {
+        "role": "סייר יס\"מ",
+        "in_station": false,
+        "rating": "אחיד",
+        "activity_level": "ב'",
+        "rank": "רס\"ר 8",
+        "by_seniority": {
+          "3": {
+            "no_gemul": 11735,
+            "gemul_a": 13620
+          },
+          "2": {
+            "no_gemul": 11637,
+            "gemul_a": 13522
+          },
+          "1": {
+            "no_gemul": 11539,
+            "gemul_a": 13424
+          },
+          "0": {
+            "no_gemul": 11444,
+            "gemul_a": 13329
+          }
+        }
+      }
+    ],
+    "station_uplift": {
+      "total": 980,
+      "station_dedicated_blm": 710,
+      "shekel_blm": 270
+    }
+  }
+}
