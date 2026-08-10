@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from decimal import ROUND_HALF_UP, Decimal
 
 from .engine import CalculationError, Dataset, Result, load_dataset
 from .tax import estimate_net, load_params
@@ -23,7 +24,13 @@ LINE = "─" * 62
 
 
 def money(x: float) -> str:
-    return f"{x:,.0f} ₪"
+    """
+    עיגול חצי-כלפי-מעלה, כדי שהתצוגה תהיה זהה לזו של עמוד הווב.
+    ברירת המחדל של פייתון היא עיגול לזוגי הקרוב, ולכן 9,786.5 היה מוצג
+    כ-9,786 ב-CLI מול 9,787 בדפדפן - אותו קלט, שני מספרים.
+    """
+    rounded = Decimal(str(x)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    return f"{rounded:,} ₪"
 
 
 def print_catalog(ds: Dataset) -> None:

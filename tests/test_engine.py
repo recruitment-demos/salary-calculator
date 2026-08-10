@@ -218,6 +218,27 @@ class TestResultShape(unittest.TestCase):
         self.assertEqual(len(DS.manager_ratings()), 3)
 
 
+class TestDisplayRounding(unittest.TestCase):
+    """
+    התצוגה ב-CLI חייבת לעגל כמו Math.round של JS (חצי כלפי מעלה).
+    אחרת אותו קלט מציג מספר שונה בטרמינל ובדפדפן.
+    """
+
+    def test_half_up_not_bankers(self):
+        from salary_calc.cli import money
+
+        self.assertEqual(money(9786.5), "9,787 ₪")
+        self.assertEqual(money(9785.5), "9,786 ₪")  # פייתון היה מציג 9,786 גם כאן
+        self.assertEqual(money(11312), "11,312 ₪")
+
+    def test_matches_engine_value(self):
+        from salary_calc.cli import money
+
+        r = DS.calculate_manager(6, "אקדמאי ישים 7%", 1.5)
+        self.assertEqual(r.monthly_gross, 9786.5)
+        self.assertEqual(money(r.monthly_gross), "9,787 ₪")
+
+
 class TestTax(unittest.TestCase):
     PARAMS = load_params()
 
