@@ -69,6 +69,24 @@
 
   .hr{height:1px;background:var(--line);margin:16px 0}
 
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;
+         background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:10px}
+  .mode{padding:8px 6px;border:0;border-radius:8px;background:transparent;color:var(--muted);
+        font-family:inherit;font-size:.86rem;font-weight:600;cursor:pointer;transition:.15s}
+  .mode[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .mode-hint{font-size:.78rem;margin:0 0 14px;line-height:1.5}
+  .switch.mini{padding:6px 0 0;font-size:.8rem}
+  .switch.mini span{color:var(--muted)}
+
+  .range-val{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:2px 0}
+  .range-val .n{font-size:2.15rem;font-weight:800;letter-spacing:-.8px;line-height:1.15}
+  .range-val .dash{color:var(--muted);font-size:1.5rem;font-weight:400}
+  .scen{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.85rem;margin-top:4px}
+  .scen dt{color:var(--muted);white-space:nowrap}
+  .scen dd{margin:0}
+  .unknown-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .unknown-list .chip{border-style:dashed}
+
   .headline{
     background:linear-gradient(135deg,var(--accent-soft),transparent);
     border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px
@@ -129,17 +147,39 @@
       <h2>נתוני העובד</h2>
 
       <div data-for="field">
-        <div class="field">
-          <label for="profession">מקצוע</label>
-          <select id="profession"></select>
+        <div class="modes" role="group" aria-label="אופן הבחינה">
+          <button type="button" class="mode" data-mode="general"  aria-pressed="true">בחינה כללית</button>
+          <button type="button" class="mode" data-mode="specific" aria-pressed="false">בחינה ספציפית</button>
         </div>
+        <p class="sub mode-hint" id="modeHint"></p>
+
         <div class="field">
+          <label for="family">מקצוע</label>
+          <select id="family"></select>
+        </div>
+        <div class="field" data-mode-for="specific">
+          <label for="kapaz">מסגרת קפ"ז תחנות</label>
+          <select id="kapaz">
+            <option value="">לא ידוע</option>
+            <option value="yes">כן — במסגרת קפ"ז</option>
+            <option value="no">לא</option>
+          </select>
+        </div>
+        <div class="field" data-mode-for="specific">
           <label for="district">מחוז</label>
           <select id="district"></select>
         </div>
-        <div class="field">
+        <div class="field" data-mode-for="specific">
           <label for="activity">רמת פעילות</label>
           <select id="activity"></select>
+        </div>
+        <div class="field" data-mode-for="specific">
+          <label for="stationSel">שירות בתחנה</label>
+          <select id="stationSel">
+            <option value="">לא ידוע</option>
+            <option value="yes">כן</option>
+            <option value="no">לא</option>
+          </select>
         </div>
       </div>
 
@@ -174,16 +214,20 @@
         <p class="sub">נתוני תחנת לוד תקפים לוותק 2.8 שנים בלבד.</p>
       </div>
 
-      <div class="field" data-for="field manager magav" id="senBox">
+      <div class="field" data-for="field manager magav" data-mode-for="specific" id="senBox">
         <div class="sen-head">
           <label for="seniority" style="margin:0">ותק</label>
           <span class="sen-val" id="senVal">0 שנים</span>
         </div>
         <input type="range" id="seniority" min="0" max="6" step="0.25" value="0">
         <div class="ticks"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+        <label class="switch mini" data-for="field" data-mode-for="specific">
+          <input type="checkbox" id="senUnknown">
+          <span>לא יודע/ת את הוותק</span>
+        </label>
       </div>
 
-      <div class="field">
+      <div class="field" data-mode-for="specific">
         <label for="gemul">גמול השתלמות</label>
         <select id="gemul">
           <option value="no_gemul">ללא גמול השתלמות</option>
@@ -193,13 +237,7 @@
 
       <div class="hr"></div>
 
-      <label class="switch" data-for="field">
-        <input type="checkbox" id="station">
-        <span>שירות בתחנה
-          <small>מוסיף בל"מ ייעודי תחנות</small></span>
-      </label>
-
-      <label class="switch" data-for="field">
+      <label class="switch" data-for="field" data-mode-for="specific">
         <input type="checkbox" id="noExpenses">
         <span>הצג ללא הוצאות אישיות
           <small>ניכוי החזר הוצאות (מתועד לדרגת רס"ר)</small></span>
@@ -232,7 +270,7 @@
         <div id="notices"></div>
       </div>
 
-      <div class="grid2">
+      <div class="grid2" id="detailCards">
         <div class="card">
           <h2>התקדמות לפי ותק</h2>
           <svg class="chart" id="chart" viewBox="0 0 420 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="גרף שכר לפי ותק"></svg>
@@ -365,6 +403,92 @@ function calcLod(o){
   };
 }
 
+/* ---------- טווחים (תואם salary_calc/engine.py) ---------- */
+const DISTRICT_LABELS = {'כל הארץ':'שאר הארץ'};
+const districtLabel = d => DISTRICT_LABELS[d] || d;
+
+const JOB_FAMILIES = [
+  {id:'patrol_detective', name:'סייר / בלש',      kapaz:'patrol_detective_kapaz', regular:'patrol_detective'},
+  {id:'investigator',     name:'חוקר',            kapaz:'investigator_kapaz',     regular:'investigator'},
+  {id:'yasam_patrol',     name:'סייר יס"מ',       kapaz:null,                     regular:'yasam_patrol'},
+  {id:'dispatcher_100',   name:'מוקדן 100 / משגר',kapaz:null,                     regular:'dispatcher_100'},
+  {id:'magav_fighter',    name:'לוחם / סייר מג"ב',kapaz:null,                     regular:'magav_fighter'}
+];
+const familyById = id => JOB_FAMILIES.find(f=>f.id===id);
+
+function professionsFor(familyId, kapaz){
+  const fams = familyId ? [familyById(familyId)] : JOB_FAMILIES;
+  const ids = [];
+  for(const f of fams){
+    if(!f) continue;
+    if(kapaz === true){ if(f.kapaz) ids.push(f.kapaz); }
+    else if(kapaz === false){ if(f.regular) ids.push(f.regular); }
+    else { [f.kapaz, f.regular].forEach(x=>{ if(x) ids.push(x); }); }
+  }
+  if(!ids.length) throw new Error('אין מקצוע שתואם לבחירה. ייתכן שהמקצוע הזה אינו קיים במסגרת קפ"ז תחנות.');
+  return ids;
+}
+
+function describeScenario(s){
+  const p = [s.profession, districtLabel(s.district), `רמת פעילות ${s.activity_level}`,
+             `ותק ${+s.seniority}`, GEMUL_LABELS[s.gemul]];
+  if(s.in_station) p.push('שירות בתחנה');
+  return p.join(' · ');
+}
+
+function calculateRange(o){
+  const professions = professionsFor(o.familyId, o.kapaz);
+  const gemuls = o.gemul ? [o.gemul] : ['no_gemul','gemul_a'];
+  let low=null, high=null, count=0;
+
+  for(const pid of professions){
+    for(const v of DATA.field.filter(x=>x.profession_id===pid)){
+      if(o.district && v.district!==o.district) continue;
+      if(o.activity && v.activity_level!==o.activity) continue;
+
+      // תוספת התחנה מתועדת בירושלים בלבד - לא מניחים אותה במחוזות אחרים
+      const stations = (o.station===null || o.station===undefined)
+        ? (v.district==='ירושלים' ? [false,true] : [false])
+        : [o.station];
+
+      const anchors = Object.keys(v.by_seniority).map(Number).sort((a,b)=>a-b);
+      const sens = (o.seniority===null || o.seniority===undefined) ? anchors : [o.seniority];
+
+      for(const g of gemuls){
+        if(v.by_seniority[String(anchors[0])][g]==null) continue;
+        for(const s of sens){
+          for(const st of stations){
+            const r = calcField({profession:pid, district:v.district, activity:v.activity_level,
+                                 seniority:s, gemul:g, station:st, noExpenses:o.noExpenses});
+            const sc = {amount:r.total, profession:v.profession, profession_id:pid, district:v.district,
+                        activity_level:v.activity_level, seniority:s, gemul:g, in_station:st};
+            count++;
+            if(!low  || r.total < low.amount)  low  = sc;
+            if(!high || r.total > high.amount) high = sc;
+          }
+        }
+      }
+    }
+  }
+  if(!low) throw new Error('אין סימולציה שתואמת לבחירה הזו.');
+
+  const fams = o.familyId ? [familyById(o.familyId)] : JOB_FAMILIES;
+  const unknowns = [];
+  if(!o.familyId) unknowns.push('מקצוע');
+  if((o.kapaz===null||o.kapaz===undefined) && fams.some(f=>f && f.kapaz)) unknowns.push('מסגרת קפ"ז תחנות');
+  if(!o.district) unknowns.push('מחוז');
+  if(!o.activity) unknowns.push('רמת פעילות');
+  if(o.seniority===null||o.seniority===undefined) unknowns.push('ותק');
+  if(!o.gemul) unknowns.push('גמול השתלמות');
+  if(o.station===null||o.station===undefined) unknowns.push('שירות בתחנה');
+
+  return {low, high, combinations:count, unknowns,
+          minimum:low.amount, maximum:high.amount,
+          spread:high.amount-low.amount,
+          isSingle: Math.abs(high.amount-low.amount) < 0.005,
+          basis: o.noExpenses ? 'ללא הוצאות אישיות' : 'כולל הוצאות אישיות'};
+}
+
 /* ---------- שיוך מג"ב (תואם salary_calc/engine.py) ---------- */
 const MAGAV = DATA.magav_assignment || {roles:[], rows:[], see_other_doc:''};
 
@@ -450,25 +574,66 @@ function estimateNet(gross, cp){
 let track='field';
 const opt = (v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t;return o;};
 
-function fillProfessions(){
-  const seen=new Map();
-  DATA.field.forEach(v=>{ if(!seen.has(v.profession_id)) seen.set(v.profession_id,v); });
-  $('profession').replaceChildren(...[...seen.values()].map(v=>
-    opt(v.profession_id, v.profession + (v.framework?` — ${v.framework}`:''))));
+let mode = 'general';
+const fieldSel = () => {
+  const kapazRaw = $('kapaz').value, stRaw = $('stationSel').value;
+  const tri = v => v==='yes' ? true : v==='no' ? false : null;
+  if(mode==='general'){
+    return {familyId:$('family').value||null, kapaz:null, district:null, activity:null,
+            seniority:null, gemul:null, station:null, noExpenses:false};
+  }
+  return {
+    familyId : $('family').value || null,
+    kapaz    : tri(kapazRaw),
+    district : $('district').value || null,
+    activity : $('activity').value || null,
+    seniority: $('senUnknown').checked ? null : +$('seniority').value,
+    gemul    : $('gemul').value || null,
+    station  : tri(stRaw),
+    noExpenses: $('noExpenses').checked
+  };
+};
+
+function fillFamilies(){
+  $('family').replaceChildren(opt('', 'לא ידוע — כל המקצועות'),
+    ...JOB_FAMILIES.map(f=>opt(f.id, f.name)));
 }
 function fillDistricts(){
-  const pid=$('profession').value;
-  const ds=[...new Set(DATA.field.filter(v=>v.profession_id===pid).map(v=>v.district))];
+  const s = fieldSel();
+  let ids; try{ ids = professionsFor(s.familyId, s.kapaz); }catch(e){ ids=[]; }
+  const ds=[...new Set(DATA.field.filter(v=>ids.includes(v.profession_id)).map(v=>v.district))];
   const keep=$('district').value;
-  $('district').replaceChildren(...ds.map(d=>opt(d,d)));
+  $('district').replaceChildren(opt('','לא ידוע'), ...ds.map(d=>opt(d, districtLabel(d))));
   if(ds.includes(keep)) $('district').value=keep;
 }
 function fillActivities(){
-  const pid=$('profession').value, d=$('district').value;
-  const rows=DATA.field.filter(v=>v.profession_id===pid && v.district===d);
+  const s = fieldSel();
+  let ids; try{ ids = professionsFor(s.familyId, s.kapaz); }catch(e){ ids=[]; }
+  const rows=DATA.field.filter(v=>ids.includes(v.profession_id) && (!s.district || v.district===s.district));
+  const seen=new Map();
+  rows.forEach(v=>{ if(!seen.has(v.activity_level)) seen.set(v.activity_level, v); });
   const keep=$('activity').value;
-  $('activity').replaceChildren(...rows.map(v=>opt(v.activity_level, v.activity_level+(v.notes?` (${v.notes})`:''))));
-  if(rows.some(v=>v.activity_level===keep)) $('activity').value=keep;
+  $('activity').replaceChildren(opt('','לא ידוע'),
+    ...[...seen.values()].map(v=>opt(v.activity_level, v.activity_level+(v.notes?` (${v.notes})`:''))));
+  if(seen.has(keep)) $('activity').value=keep;
+}
+function applyMode(){
+  document.querySelectorAll('.mode').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.mode===mode)));
+  document.querySelectorAll('[data-mode-for]').forEach(el=>{
+    if(track==='field'){
+      el.hidden = el.dataset.modeFor!==mode;
+    }else{
+      const df = el.dataset.for;            // מחוץ למסלול השטח אין מצבי בחינה
+      el.hidden = df ? !df.split(' ').includes(track) : false;
+    }
+  });
+  $('modeHint').textContent = mode==='general'
+    ? 'בוחרים מקצוע ומקבלים את טווח השכר האפשרי. מתאים כשעדיין לא יודעים מחוז, רמת פעילות או ותק.'
+    : 'ממלאים מה שידוע. כל שדה שנשאר «לא ידוע» מרחיב את הטווח במקום לנחש.';
+  // 'לא ידוע' בגמול רלוונטי רק במסלול השטח
+  const g=$('gemul'), hasUnknown=[...g.options].some(o=>o.value==='');
+  if(track==='field' && !hasUnknown) g.insertBefore(opt('','לא ידוע'), g.firstChild);
+  if(track!=='field' && hasUnknown){ if(g.value==='') g.value='no_gemul'; g.querySelector('option[value=""]').remove(); }
 }
 function fillManagers(){
   const groups=[...new Set(DATA.managers.map(m=>m.salary_group))].sort((a,b)=>a-b);
@@ -490,6 +655,7 @@ function showTrack(t){
   document.querySelectorAll('[data-for]').forEach(el=>{
     el.hidden = !el.dataset.for.split(' ').includes(t);
   });
+  applyMode();
   render();
 }
 
@@ -531,6 +697,65 @@ function drawChart(series, currentX, currentY){
     + `<text x="${(W-P.r)}" y="${H-4}" text-anchor="end">ותק (שנים)</text>`;
 }
 
+/* ---------- רינדור טווח ---------- */
+function renderRange(rng){
+  const fam = $('family').value ? familyById($('family').value).name : 'כל המקצועות';
+  $('resTitle').textContent = `${fam} · טווח אפשרי`;
+  $('resAmount').innerHTML =
+    `<span class="range-val"><span class="n">${fmt(rng.minimum)}</span>`
+  + `<span class="dash">–</span><span class="n">${fmt(rng.maximum)}</span></span>`;
+  $('resBasis').textContent =
+    `ברוטו חודשי (${rng.basis}) · פער ${fmt(rng.spread)} · ${rng.combinations} צירופים אפשריים`;
+
+  $('resChips').replaceChildren(...rng.unknowns.map(u=>{
+    const s=document.createElement('span'); s.className='chip'; s.textContent='לא ידוע: '+u; return s;}));
+
+  // במקום פירוט רכיבים - שני תרחישי הקצה שמגדירים את הטווח
+  const tb=$('breakdown').querySelector('tbody'); tb.replaceChildren();
+  [['הנמוך ביותר', rng.low], ['הגבוה ביותר', rng.high]].forEach(([label, sc])=>{
+    const tr=tb.insertRow();
+    tr.insertCell().innerHTML = `${label}<span class="note">${describeScenario(sc)}</span>`;
+    const td=tr.insertCell(); td.className='num'; td.textContent=fmt(sc.amount);
+  });
+  const tr=tb.insertRow(); tr.className='total';
+  tr.insertCell().textContent='רוחב הטווח';
+  const td=tr.insertCell(); td.className='num'; td.textContent=fmt(rng.spread);
+
+  const nb=$('notices'); nb.replaceChildren();
+  const d=document.createElement('div'); d.className='warn';
+  d.innerHTML = '<b>זהו טווח, לא הערכה</b>'
+    + 'המינימום והמקסימום הם ערכים אמיתיים מטבלאות הסימולציה — הגבוה והנמוך מבין כל '
+    + 'הצירופים שתואמים למה שכבר ידוע. ככל שתמלא/י פרטים נוספים הטווח יצטמצם, '
+    + 'ועם כל הפרטים יתקבל מספר יחיד עם פירוט מלא.';
+  nb.appendChild(d);
+
+  // הגרף והעוגנים מתייחסים לרשומה בודדת ולכן אינם רלוונטיים לטווח
+  $('anchors').querySelector('tbody').replaceChildren();
+  $('chart').innerHTML=''; $('chartNote').textContent='';
+  $('detailCards').hidden = true;
+
+  const wantNet=$('wantNet').checked;
+  $('netCard').hidden=!wantNet;
+  if(wantNet){
+    const cp=+$('creditPoints').value||0;
+    const lo=estimateNet(rng.minimum, cp), hi=estimateNet(rng.maximum, cp);
+    const ntb=$('netTable').querySelector('tbody'); ntb.replaceChildren();
+    [['ברוטו', rng.minimum, rng.maximum],
+     ['מס הכנסה', -lo.incomeTax, -hi.incomeTax],
+     ['ביטוח לאומי', -lo.ni, -hi.ni],
+     ['ביטוח בריאות', -lo.health, -hi.health]].forEach(([l,a,b])=>{
+      const tr=ntb.insertRow(); if(a<0) tr.className='minus';
+      tr.insertCell().textContent=l;
+      const c=tr.insertCell(); c.className='num';
+      c.textContent=`${(a<0?'− ':'')}${fmt(Math.abs(a))} – ${fmt(Math.abs(b))}`;
+    });
+    const t2=ntb.insertRow(); t2.className='total';
+    t2.insertCell().textContent='נטו משוער';
+    const c2=t2.insertCell(); c2.className='num'; c2.textContent=`${fmt(lo.net)} – ${fmt(hi.net)}`;
+    $('netDisclaimer').innerHTML=`<b>אומדן בלבד (${TAX.year})</b>${TAX.disclaimer}`;
+  }
+}
+
 /* ---------- רינדור ---------- */
 function render(){
   $('senVal').textContent = `${(+$('seniority').value)} שנים`;
@@ -541,9 +766,15 @@ function render(){
     const gemul=$('gemul').value, seniority=+$('seniority').value;
     if(track==='field'){
       fillDistricts(); fillActivities();
-      r = calcField({profession:$('profession').value, district:$('district').value,
-                     activity:$('activity').value, seniority, gemul,
-                     station:$('station').checked, noExpenses:$('noExpenses').checked});
+      $('seniority').disabled = $('senUnknown').checked && mode==='specific';
+      const sel = fieldSel();
+      const rng = calculateRange(sel);
+      if(!rng.isSingle){ renderRange(rng); return; }
+      // כל הפרטים ידועים - מציגים חישוב מלא עם פירוט
+      r = calcField({profession:rng.low.profession_id || professionsFor(sel.familyId, sel.kapaz)[0],
+                     district:rng.low.district, activity:rng.low.activity_level,
+                     seniority:rng.low.seniority, gemul:rng.low.gemul,
+                     station:rng.low.in_station, noExpenses:sel.noExpenses});
     } else if(track==='manager'){
       r = calcManager({group:+$('mgroup').value, rating:$('mrating').value, seniority, gemul});
     } else if(track==='magav'){
@@ -566,6 +797,7 @@ function render(){
     $('breakdown').querySelector('tbody').replaceChildren();
     $('anchors').querySelector('tbody').replaceChildren();
     $('chart').innerHTML=''; $('chartNote').textContent='';
+    $('detailCards').hidden = true;
     $('netCard').hidden=true;
     const nb=$('notices'); nb.replaceChildren();
     const d=document.createElement('div'); d.className='warn';
@@ -574,6 +806,7 @@ function render(){
     return;
   }
 
+  $('detailCards').hidden = false;
   $('resTitle').textContent = r.title;
   $('resAmount').textContent = fmt(r.total) + (r.estimated ? ' *' : '');
   $('resBasis').textContent = `ברוטו חודשי (${r.basis}) · שנתי ${fmt(r.total*12)}`;
@@ -638,12 +871,17 @@ function render(){
 }
 
 /* ---------- אתחול ---------- */
-fillProfessions(); fillDistricts(); fillActivities(); fillManagers(); fillLod(); fillMagav();
+fillFamilies(); fillDistricts(); fillActivities(); fillManagers(); fillLod(); fillMagav();
 $('srcList').textContent = DATA.meta.source_files.join(' · ');
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTrack(b.dataset.track)));
-$('profession').addEventListener('change',()=>{ $('district').value=''; $('activity').value=''; render(); });
-['district','activity','gemul','mgroup','mrating','lodrow','sector','magavRole',
- 'seniority','station','noExpenses','wantNet','creditPoints']
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{
+  mode=b.dataset.mode; applyMode(); render();
+}));
+['family','kapaz'].forEach(id=>$(id).addEventListener('change',()=>{
+  $('district').value=''; $('activity').value=''; render();
+}));
+['district','activity','gemul','mgroup','mrating','lodrow','sector','magavRole','stationSel',
+ 'seniority','senUnknown','noExpenses','wantNet','creditPoints']
   .forEach(id=>$(id).addEventListener('input', render));
 showTrack('field');
 </script>

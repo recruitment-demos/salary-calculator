@@ -17,7 +17,7 @@ import json
 import sys
 from decimal import ROUND_HALF_UP, Decimal
 
-from .engine import CalculationError, Dataset, Result, load_dataset
+from .engine import CalculationError, Dataset, Result, district_label, load_dataset
 from .tax import estimate_net, load_params
 
 LINE = "─" * 62
@@ -154,6 +154,48 @@ def print_curve(ds: Dataset, args) -> None:
     print()
 
 
+def print_range(rng, ds: Dataset) -> None:
+    print()
+    print(LINE)
+    print("טווח שכר אפשרי")
+    print(LINE)
+
+    if rng.is_single:
+        print(f"\n  כל הפרטים ידועים - סכום יחיד: {money(rng.minimum)}")
+    else:
+        print(f"\n  {money(rng.minimum)}   עד   {money(rng.maximum)}")
+        print(f"  רוחב הטווח: {money(rng.spread)}")
+    print(f"  בסיס: {rng.basis}")
+    print(f"  צירופים אפשריים: {rng.combinations}")
+
+    if rng.unknowns:
+        print(f"\n  פרטים שאינם ידועים: {', '.join(rng.unknowns)}")
+
+    print("\n  תרחישי הקצה:")
+    print(f"    הנמוך ביותר  {money(rng.low.amount):>12}   {rng.low.describe()}")
+    print(f"    הגבוה ביותר  {money(rng.high.amount):>12}   {rng.high.describe()}")
+
+    if not rng.is_single:
+        print()
+        print("  זהו טווח ולא הערכה: שני הקצוות הם ערכים אמיתיים מהסימולציות.")
+        print("  כל פרט נוסף שיימסר יצמצם את הטווח.")
+    print()
+
+
+def print_families(ds: Dataset) -> None:
+    print()
+    print(LINE)
+    print("משפחות מקצוע")
+    print(LINE)
+    for f in ds.families():
+        kapaz = 'יש הבחנת קפ"ז תחנות' if f["has_kapaz"] else 'אין הבחנת קפ"ז'
+        print(f"\n  {f['id']:<20} {f['name']}   ({kapaz})")
+        for d in ds.districts_for(f["id"]):
+            levels = ds.activity_levels_for(f["id"], district=d)
+            print(f"      {district_label(d):<12} {', '.join(levels)}")
+    print()
+
+
 def print_magav_matrix(ds: Dataset) -> None:
     """טבלת הכיסוי של שיוך מג"ב: מה אפשר לתמחר, ומה חסר וכמה."""
     print()
@@ -217,6 +259,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--list", action="store_true", help="הצגת כל המקצועות והאפשרויות")
 
+    rg = p.add_argument_group("טווח (כשלא יודעים את כל הפרטים)")
+    rg.add_argument(
+        "--range",
+        action="store_true",
+        help="חישוב טווח: כל פרט שלא צוין נחשב 'לא ידוע'",
+    )
+    rg.add_argument("--family", help="משפחת מקצוע (patrol_detective / investigator / ...)")
+    rg.add_argument(
+        "--kapaz",
+        choices=["yes", "no"],
+        help='מסגרת קפ"ז תחנות. השמטה = לא ידוע',
+    )
+    rg.add_argument(
+        "--families", action="store_true", help="הצגת משפחות המקצוע הזמינות"
+    )
+
     g = p.add_argument_group("מקצועות שטח")
     g.add_argument("--profession", help="מזהה מקצוע (ראה --list)")
     g.add_argument("--district", help="מחוז")
@@ -260,10 +318,34 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    raw = list(sys.argv[1:] if argv is None else argv)
     args = build_parser().parse_args(argv)
+    args.seniority_given = any(a == "--seniority" or a.startswith("--seniority=") for a in raw)
+    args.gemul_given = any(a == "--gemul" or a.startswith("--gemul=") for a in raw)
     ds = load_dataset()
 
     try:
+        if args.families:
+            print_families(ds)
+            return 0
+
+        if args.range:
+            rng = ds.calculate_range(
+                family_id=args.family,
+                kapaz={"yes": True, "no": False}.get(args.kapaz),
+                district=args.district,
+                activity_level=args.activity,
+                seniority=args.seniority if args.seniority_given else None,
+                gemul=args.gemul if args.gemul_given else None,
+                in_station=True if args.station else None,
+                include_personal_expenses=not args.no_expenses,
+            )
+            if args.json:
+                print(json.dumps(rng.as_dict(), ensure_ascii=False, indent=2))
+            else:
+                print_range(rng, ds)
+            return 0
+
         if args.magav_matrix:
             print_magav_matrix(ds)
             return 0

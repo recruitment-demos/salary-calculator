@@ -24,9 +24,10 @@ const code = m[1].slice(0, cut);
 
 const sandbox = { Intl, Math, Object, Number, Error, JSON, console };
 vm.createContext(sandbox);
-vm.runInContext(code + '\nthis.__api = {calcField, calcManager, calcLod, calcMagav, resolveMagav, estimateNet, interpolate, DATA, MAGAV};', sandbox);
+vm.runInContext(code + '\nthis.__api = {calcField, calcManager, calcLod, calcMagav, resolveMagav, calculateRange, JOB_FAMILIES, estimateNet, interpolate, DATA, MAGAV};', sandbox);
 
-const { calcField, calcManager, calcLod, calcMagav, resolveMagav, estimateNet, DATA, MAGAV } = sandbox.__api;
+const { calcField, calcManager, calcLod, calcMagav, resolveMagav, calculateRange,
+        JOB_FAMILIES, estimateNet, DATA, MAGAV } = sandbox.__api;
 
 const SENIORITIES = [0, 0.5, 1, 1.75, 2, 2.5, 3, 4.25];
 const GEMULS = ['no_gemul', 'gemul_a'];
@@ -88,6 +89,35 @@ for (const row of MAGAV.rows) {
       }
     } else {
       out.push(rec);
+    }
+  }
+}
+
+// ------- טווחים: כל שילוב של "מה ידוע" ו"מה לא"
+const FAMILY_OPTS = [null, ...JOB_FAMILIES.map(f => f.id)];
+for (const familyId of FAMILY_OPTS) {
+  for (const kapaz of [null, true, false]) {
+    for (const district of [null, 'ירושלים', 'כל הארץ']) {
+      for (const seniority of [null, 0, 2.5]) {
+        for (const gemul of [null, 'no_gemul']) {
+          for (const station of [null, false, true]) {
+            let r;
+            try {
+              r = calculateRange({ familyId, kapaz, district, activity: null, seniority, gemul, station, noExpenses: false });
+            } catch (e) {
+              out.push({ kind: 'range', familyId, kapaz, district, seniority, gemul, station, error: true });
+              continue;
+            }
+            out.push({
+              kind: 'range', familyId, kapaz, district, seniority, gemul, station,
+              error: false,
+              minimum: +r.minimum.toFixed(6), maximum: +r.maximum.toFixed(6),
+              combinations: r.combinations, isSingle: r.isSingle,
+              unknowns: r.unknowns,
+            });
+          }
+        }
+      }
     }
   }
 }

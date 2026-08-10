@@ -218,6 +218,111 @@ class TestResultShape(unittest.TestCase):
         self.assertEqual(len(DS.manager_ratings()), 3)
 
 
+class TestRanges(unittest.TestCase):
+    """טווחים כשחלק מהפרטים אינם ידועים."""
+
+    def test_all_unknown_spans_whole_dataset(self):
+        r = DS.calculate_range()
+        every = [
+            v["by_seniority"][s][g]
+            for v in DS.field
+            for s in v["by_seniority"]
+            for g in ("no_gemul", "gemul_a")
+            if v["by_seniority"][s][g] is not None
+        ]
+        self.assertEqual(r.minimum, min(every))
+        # המקסימום יכול לכלול תוספת תחנה בירושלים, ולכן לא פחות מהמרבי הגולמי
+        self.assertGreaterEqual(r.maximum, max(every))
+        self.assertFalse(r.is_single)
+
+    def test_bounds_are_real_values_not_averages(self):
+        """כל קצה חייב להיות ערך שאפשר להגיע אליו בחישוב רגיל."""
+        r = DS.calculate_range(family_id="magav_fighter")
+        for sc in (r.low, r.high):
+            direct = DS.calculate_field(
+                profession_id=sc.profession_id,
+                district=sc.district,
+                activity_level=sc.activity_level,
+                seniority=sc.seniority,
+                gemul=sc.gemul,
+                in_station=sc.in_station,
+            )
+            self.assertAlmostEqual(direct.monthly_gross, sc.amount, places=6)
+
+    def test_more_information_narrows_range(self):
+        wide = DS.calculate_range(family_id="patrol_detective")
+        narrow = DS.calculate_range(family_id="patrol_detective", district="ירושלים")
+        narrower = DS.calculate_range(
+            family_id="patrol_detective", district="ירושלים", activity_level="שיטור חדש"
+        )
+        self.assertGreater(wide.spread, narrow.spread)
+        self.assertGreaterEqual(narrow.spread, narrower.spread)
+        self.assertGreater(wide.combinations, narrow.combinations)
+
+    def test_full_information_collapses_to_single(self):
+        r = DS.calculate_range(
+            family_id="investigator",
+            kapaz=False,
+            district="ירושלים",
+            activity_level="שיטור חדש",
+            seniority=2,
+            gemul="no_gemul",
+            in_station=False,
+        )
+        self.assertTrue(r.is_single)
+        self.assertEqual(r.combinations, 1)
+        self.assertEqual(r.unknowns, [])
+        self.assertEqual(r.minimum, 10874)
+
+    def test_range_matches_jerusalem_document(self):
+        """הקצה העליון בירושלים חייב להיות בדיוק הערך שבמסמך המחוז."""
+        r = DS.calculate_range(family_id="patrol_detective", kapaz=False, district="ירושלים")
+        self.assertEqual(r.minimum, 11322)  # ותק 0, ללא גמול, לא בתחנה
+        self.assertEqual(r.maximum, 14181)  # ותק 3, כולל גמול, בתחנה
+
+    def test_station_not_assumed_outside_jerusalem(self):
+        """תוספת התחנה מתועדת בירושלים בלבד ואין להניח אותה במחוזות אחרים."""
+        r = DS.calculate_range(family_id="magav_fighter")
+        self.assertFalse(r.high.in_station)
+        every = [
+            v["by_seniority"][s]["gemul_a"]
+            for v in DS.field
+            if v["profession_id"] == "magav_fighter"
+            for s in v["by_seniority"]
+        ]
+        self.assertEqual(r.maximum, max(every))
+
+    def test_kapaz_filter(self):
+        both = DS.calculate_range(family_id="investigator")
+        only_kapaz = DS.calculate_range(family_id="investigator", kapaz=True)
+        self.assertLess(only_kapaz.combinations, both.combinations)
+        self.assertNotIn('מסגרת קפ"ז תחנות', only_kapaz.unknowns)
+
+    def test_family_without_kapaz_has_no_kapaz_unknown(self):
+        r = DS.calculate_range(family_id="magav_fighter")
+        self.assertNotIn('מסגרת קפ"ז תחנות', r.unknowns)
+
+    def test_kapaz_true_for_family_without_kapaz_fails(self):
+        with self.assertRaises(CalculationError):
+            DS.calculate_range(family_id="magav_fighter", kapaz=True)
+
+    def test_unknown_family_rejected(self):
+        with self.assertRaises(CalculationError):
+            DS.calculate_range(family_id="nope")
+
+    def test_district_labels(self):
+        from salary_calc.engine import district_label
+
+        self.assertEqual(district_label("כל הארץ"), "שאר הארץ")
+        self.assertEqual(district_label("ירושלים"), "ירושלים")
+        self.assertEqual(district_label('מתפ"א'), 'מתפ"א')  # יחידה עצמאית - נשארת בשמה
+
+    def test_navigation_helpers_for_families(self):
+        self.assertEqual(len(DS.families()), 5)
+        self.assertIn("ירושלים", DS.districts_for("patrol_detective"))
+        self.assertTrue(DS.activity_levels_for("magav_fighter"))
+
+
 class TestMagavAssignment(unittest.TestCase):
     """טבלת השיוך של מג"ב: מרחב × תפקיד -> רמת פעילות -> שכר (או פער מפורש)."""
 

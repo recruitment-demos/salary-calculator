@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from salary_calc.engine import load_dataset
+from salary_calc.engine import CalculationError, load_dataset
 from salary_calc.tax import estimate_net, load_params
 
 WINDOWS_NODE = Path("/mnt/c/Program Files/nodejs/node.exe")
@@ -73,8 +73,38 @@ class TestJsPythonParity(unittest.TestCase):
 
     def test_dataset_covered(self):
         kinds = {r["kind"] for r in self.js_rows}
-        self.assertEqual(kinds, {"field", "manager", "lod", "magav", "net"})
+        self.assertEqual(kinds, {"field", "manager", "lod", "magav", "range", "net"})
         self.assertGreater(len(self.js_rows), 1500)
+
+    def test_range_parity(self):
+        """הטווחים הם הלוגיקה המסובכת ביותר - כאן הכי קל לשני המנועים להתפצל."""
+        rows = [r for r in self.js_rows if r["kind"] == "range"]
+        self.assertGreater(len(rows), 200)
+        for r in rows:
+            ctx = (
+                f"family={r['familyId']} kapaz={r['kapaz']} district={r['district']} "
+                f"ותק={r['seniority']} gemul={r['gemul']} station={r['station']}"
+            )
+            kwargs = dict(
+                family_id=r["familyId"],
+                kapaz=r["kapaz"],
+                district=r["district"],
+                activity_level=None,
+                seniority=r["seniority"],
+                gemul=r["gemul"],
+                in_station=r["station"],
+            )
+            if r["error"]:
+                with self.assertRaises(CalculationError, msg=ctx):
+                    self.ds.calculate_range(**kwargs)
+                continue
+
+            py = self.ds.calculate_range(**kwargs)
+            self.assertAlmostEqual(py.minimum, r["minimum"], places=4, msg=ctx)
+            self.assertAlmostEqual(py.maximum, r["maximum"], places=4, msg=ctx)
+            self.assertEqual(py.combinations, r["combinations"], msg=ctx)
+            self.assertEqual(py.is_single, r["isSingle"], msg=ctx)
+            self.assertEqual(py.unknowns, r["unknowns"], msg=ctx)
 
     def test_magav_parity(self):
         """גם ההחלטה 'אי אפשר לתמחר' חייבת להיות זהה בשני המנועים."""

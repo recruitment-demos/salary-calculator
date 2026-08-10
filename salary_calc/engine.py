@@ -74,6 +74,35 @@ class CalculationError(ValueError):
     """קלט שאינו קיים בנתוני הסימולציה."""
 
 
+# ---------------------------------------------------------------------------
+# תצוגת מחוזות
+#
+# בטבלאות המקור 'כל הארץ' הוא ערך שנתי שחל היכן שאין שורה ייעודית, ולכן
+# בפועל הוא 'שאר הארץ'. 'מתפ"א' הוא שם של יחידה עצמאית ולא מחוז, ונשאר כשמו.
+# ---------------------------------------------------------------------------
+DISTRICT_LABELS = {"כל הארץ": "שאר הארץ"}
+
+
+def district_label(district: str) -> str:
+    return DISTRICT_LABELS.get(district, district)
+
+
+# ---------------------------------------------------------------------------
+# משפחות מקצוע
+#
+# 'במסגרת קפ"ז תחנות' ו'לא במסגרת' הן שתי רשומות נפרדות באותו מקצוע.
+# מועמד לא תמיד יודע לאיזו מהן הוא שייך, ולכן מאחדים אותן למשפחה אחת
+# שאפשר לשאול עליה בנפרד - או להשאיר לא ידועה ולקבל טווח.
+# ---------------------------------------------------------------------------
+JOB_FAMILIES = [
+    {"id": "patrol_detective", "name": "סייר / בלש", "kapaz": "patrol_detective_kapaz", "regular": "patrol_detective"},
+    {"id": "investigator", "name": "חוקר", "kapaz": "investigator_kapaz", "regular": "investigator"},
+    {"id": "yasam_patrol", "name": 'סייר יס"מ', "kapaz": None, "regular": "yasam_patrol"},
+    {"id": "dispatcher_100", "name": "מוקדן 100 / משגר", "kapaz": None, "regular": "dispatcher_100"},
+    {"id": "magav_fighter", "name": 'לוחם / סייר מג"ב', "kapaz": None, "regular": "magav_fighter"},
+]
+
+
 # --------------------------------------------------------------------------
 # מבני תוצאה
 # --------------------------------------------------------------------------
@@ -101,6 +130,91 @@ class Breakdown:
     @property
     def total(self) -> float:
         return sum(c.amount for c in self.components)
+
+
+@dataclass
+class Scenario:
+    """תרחיש קצה בטווח - הצירוף שהוליד את המינימום או את המקסימום."""
+
+    amount: float
+    profession: str
+    profession_id: str
+    district: str
+    activity_level: str
+    seniority: float
+    gemul: str
+    in_station: bool
+
+    def describe(self) -> str:
+        parts = [
+            self.profession,
+            district_label(self.district),
+            f"רמת פעילות {self.activity_level}",
+            f"ותק {self.seniority:g}",
+            GEMUL_LABELS[self.gemul],
+        ]
+        if self.in_station:
+            parts.append("שירות בתחנה")
+        return " · ".join(parts)
+
+    def as_dict(self) -> dict:
+        return {
+            "amount": round(self.amount, 2),
+            "profession": self.profession,
+            "profession_id": self.profession_id,
+            "district": self.district,
+            "district_label": district_label(self.district),
+            "activity_level": self.activity_level,
+            "seniority": self.seniority,
+            "gemul": GEMUL_LABELS[self.gemul],
+            "in_station": self.in_station,
+            "description": self.describe(),
+        }
+
+
+@dataclass
+class RangeResult:
+    """
+    תוצאה כשחלק מהפרטים אינם ידועים: טווח במקום מספר יחיד.
+
+    הטווח אינו הערכה - הוא המינימום והמקסימום בפועל על פני כל הצירופים
+    שתואמים למה שכן ידוע. אם הכול ידוע, המינימום והמקסימום מתלכדים.
+    """
+
+    low: Scenario
+    high: Scenario
+    combinations: int
+    unknowns: list[str]
+    basis: str
+
+    @property
+    def minimum(self) -> float:
+        return self.low.amount
+
+    @property
+    def maximum(self) -> float:
+        return self.high.amount
+
+    @property
+    def is_single(self) -> bool:
+        return abs(self.maximum - self.minimum) < 0.005
+
+    @property
+    def spread(self) -> float:
+        return self.maximum - self.minimum
+
+    def as_dict(self) -> dict:
+        return {
+            "minimum": round(self.minimum, 2),
+            "maximum": round(self.maximum, 2),
+            "spread": round(self.spread, 2),
+            "is_single": self.is_single,
+            "combinations": self.combinations,
+            "unknowns": list(self.unknowns),
+            "basis": self.basis,
+            "low": self.low.as_dict(),
+            "high": self.high.as_dict(),
+        }
 
 
 @dataclass
@@ -429,6 +543,171 @@ class Dataset:
             if family in rank_text:
                 return family
         return ""
+
+    # --------------------------------------------------------- טווחים
+
+    def families(self) -> list[dict]:
+        """משפחות מקצוע, עם ציון האם קיימת עבורן הבחנת קפ"ז."""
+        out = []
+        for f in JOB_FAMILIES:
+            out.append({**f, "has_kapaz": f["kapaz"] is not None})
+        return out
+
+    def _family(self, family_id: str) -> dict:
+        for f in JOB_FAMILIES:
+            if f["id"] == family_id:
+                return f
+        raise CalculationError(
+            f"משפחת מקצוע לא קיימת: {family_id}.\n"
+            f"קיים: {', '.join(f['id'] for f in JOB_FAMILIES)}"
+        )
+
+    def professions_for(self, family_id: str | None, kapaz: bool | None) -> list[str]:
+        """
+        מתרגם משפחה + מסגרת קפ"ז לרשימת מזהי מקצוע.
+
+        family_id=None -> כל המקצועות. kapaz=None -> שתי המסגרות.
+        """
+        if family_id is None:
+            families = JOB_FAMILIES
+        else:
+            families = [self._family(family_id)]
+
+        ids: list[str] = []
+        for f in families:
+            if kapaz is True:
+                if f["kapaz"]:
+                    ids.append(f["kapaz"])
+            elif kapaz is False:
+                if f["regular"]:
+                    ids.append(f["regular"])
+            else:
+                ids.extend(x for x in (f["kapaz"], f["regular"]) if x)
+        if not ids:
+            raise CalculationError(
+                "אין מקצוע שתואם לבחירה. ייתכן שהמקצוע הזה אינו קיים במסגרת קפ\"ז תחנות."
+            )
+        return ids
+
+    def districts_for(self, family_id: str | None = None, kapaz: bool | None = None) -> list[str]:
+        seen: list[str] = []
+        for pid in self.professions_for(family_id, kapaz):
+            for v in self.variants(pid):
+                if v["district"] not in seen:
+                    seen.append(v["district"])
+        return seen
+
+    def activity_levels_for(
+        self, family_id: str | None = None, kapaz: bool | None = None, district: str | None = None
+    ) -> list[str]:
+        seen: list[str] = []
+        for pid in self.professions_for(family_id, kapaz):
+            for v in self.variants(pid):
+                if district and v["district"] != district:
+                    continue
+                if v["activity_level"] not in seen:
+                    seen.append(v["activity_level"])
+        return seen
+
+    def calculate_range(
+        self,
+        family_id: str | None = None,
+        kapaz: bool | None = None,
+        district: str | None = None,
+        activity_level: str | None = None,
+        seniority: float | None = None,
+        gemul: GemulLevel | None = None,
+        in_station: bool | None = None,
+        include_personal_expenses: bool = True,
+    ) -> RangeResult:
+        """
+        מחשב טווח שכר לפי מה שידוע. כל פרמטר שהוא None נחשב 'לא ידוע',
+        והמערכת סורקת את כל האפשרויות עבורו.
+
+        זה אינו אומדן: המינימום והמקסימום הם ערכים אמיתיים מהסימולציות,
+        ולכן אפשר להגיד למועמד "בין X ל-Y" בלי להמציא מספר באמצע.
+        """
+        professions = self.professions_for(family_id, kapaz)
+        gemuls: list[GemulLevel] = [gemul] if gemul else ["no_gemul", "gemul_a"]
+
+        best_low: tuple[float, Scenario] | None = None
+        best_high: tuple[float, Scenario] | None = None
+        count = 0
+
+        for pid in professions:
+            for v in self.variants(pid):
+                if district and v["district"] != district:
+                    continue
+                if activity_level and v["activity_level"] != activity_level:
+                    continue
+
+                # תוספת התחנה מתועדת בירושלים בלבד. כשהמצב לא ידוע לא
+                # מניחים אותה במחוזות אחרים, כדי שלא לנפח את הגבול העליון.
+                if in_station is None:
+                    stations = [False, True] if v["district"] == "ירושלים" else [False]
+                else:
+                    stations = [in_station]
+
+                anchors = sorted(float(k) for k in v["by_seniority"])
+                seniorities = [seniority] if seniority is not None else anchors
+
+                for g in gemuls:
+                    if v["by_seniority"][str(int(anchors[0]))].get(g) is None:
+                        continue
+                    for s in seniorities:
+                        for st in stations:
+                            r = self.calculate_field(
+                                profession_id=pid,
+                                district=v["district"],
+                                activity_level=v["activity_level"],
+                                seniority=s,
+                                gemul=g,
+                                in_station=st,
+                                include_personal_expenses=include_personal_expenses,
+                            )
+                            sc = Scenario(
+                                amount=r.monthly_gross,
+                                profession=v["profession"],
+                                profession_id=pid,
+                                district=v["district"],
+                                activity_level=v["activity_level"],
+                                seniority=s,
+                                gemul=g,
+                                in_station=st,
+                            )
+                            count += 1
+                            if best_low is None or r.monthly_gross < best_low[0]:
+                                best_low = (r.monthly_gross, sc)
+                            if best_high is None or r.monthly_gross > best_high[0]:
+                                best_high = (r.monthly_gross, sc)
+
+        if best_low is None or best_high is None:
+            raise CalculationError("אין סימולציה שתואמת לבחירה הזו.")
+
+        unknowns = []
+        if family_id is None:
+            unknowns.append("מקצוע")
+        if kapaz is None and any(self._family(f["id"])["kapaz"] for f in ([self._family(family_id)] if family_id else JOB_FAMILIES)):
+            unknowns.append('מסגרת קפ"ז תחנות')
+        if district is None:
+            unknowns.append("מחוז")
+        if activity_level is None:
+            unknowns.append("רמת פעילות")
+        if seniority is None:
+            unknowns.append("ותק")
+        if gemul is None:
+            unknowns.append("גמול השתלמות")
+        if in_station is None:
+            unknowns.append("שירות בתחנה")
+
+        basis = "ללא הוצאות אישיות" if not include_personal_expenses else "כולל הוצאות אישיות"
+        return RangeResult(
+            low=best_low[1],
+            high=best_high[1],
+            combinations=count,
+            unknowns=unknowns,
+            basis=basis,
+        )
 
     # ------------------------------------------------------- שיוך מג"ב
 
