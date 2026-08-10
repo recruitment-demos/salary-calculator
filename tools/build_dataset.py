@@ -237,6 +237,10 @@ MANAGER_FILES = {
 
 LOD_FILE = "סייר יס''מ - תחנת לוד.pptx"
 JERUSALEM_FILE = "סימולציות מחוז ירושלים 14.7.2025.docx"
+MAGAV_FILE = "סימולצית שכר מגב.docx"
+
+# הפניה מפורשת במסמך למסמך אחר שאינו ברשותנו
+SEE_OTHER_DOC = 'ע"פ מסמך/דף מקצוע'
 
 
 def find_source(name: str) -> Path:
@@ -396,6 +400,53 @@ def build_jerusalem() -> dict:
     return {"roles": sorted(roles.values(), key=lambda r: (r["role"], r["in_station"])), "station_uplift": uplift}
 
 
+def build_magav_assignment() -> dict:
+    """
+    מסמך «סימולצית שכר מגב»: טבלת שיוך מרחב × תפקיד -> רמת פעילות.
+
+    שים לב - זהו מסמך מסוג שונה מכל השאר. הוא אינו מכיל סכומי שכר כלל,
+    אלא אומר איזו *רמת פעילות* חלה בכל מרחב ותפקיד. הסכום עצמו מגיע
+    מטבלאות השכר, ורק אם קיימת שם טבלה מתאימה לאותו תפקיד.
+    """
+    blocks = docx_blocks(find_source(MAGAV_FILE))
+    tables = [payload for kind, payload in blocks if kind == "tbl"]
+    if not tables:
+        raise ValueError(f"{MAGAV_FILE}: לא נמצאה טבלה")
+    rows = tables[0]
+
+    # שורה 0 היא כותרת-על ('מרחב' + 'תפקיד' ממוזג); שורות 1-2 הן כותרות העמודות,
+    # חלקן ממוזגות אנכית ולכן ריקות באחת מהשתיים.
+    if len(rows) < 4:
+        raise ValueError(f"{MAGAV_FILE}: מבנה טבלה לא צפוי")
+
+    head_a, head_b = rows[1], rows[2]
+    width = max(len(head_a), len(head_b), max(len(r) for r in rows[3:]))
+
+    columns = []
+    for i in range(width):
+        a = head_a[i] if i < len(head_a) else ""
+        b = head_b[i] if i < len(head_b) else ""
+        parts = [p for p in (a, b) if p]
+        columns.append(" / ".join(dict.fromkeys(parts)))
+    columns[0] = "מרחב"
+
+    roles = [c for c in columns[1:] if c]
+    entries = []
+    for row in rows[3:]:
+        if not row or not row[0]:
+            continue
+        levels = {}
+        for i, role in enumerate(columns[1:], start=1):
+            if not role:
+                continue
+            value = row[i] if i < len(row) else ""
+            if value:
+                levels[role] = value
+        entries.append({"sector": row[0], "levels": levels})
+
+    return {"roles": roles, "rows": entries, "see_other_doc": SEE_OTHER_DOC}
+
+
 def main() -> int:
     if not SRC_DIR.is_dir():
         print(f"לא נמצאה תיקיית המקור: {SRC_DIR}", file=sys.stderr)
@@ -420,6 +471,7 @@ def main() -> int:
         "managers": build_managers(),
         "lod_yasam": build_lod(),
         "jerusalem": build_jerusalem(),
+        "magav_assignment": build_magav_assignment(),
     }
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -431,6 +483,10 @@ def main() -> int:
     print(f"  שורות לוד      : {len(dataset['lod_yasam'])}")
     print(f"  תפקידי ירושלים : {len(dataset['jerusalem']['roles'])}")
     print(f"  תוספת תחנה     : {dataset['jerusalem']['station_uplift']}")
+    ma = dataset["magav_assignment"]
+    print(f"  שיוך מג\"ב      : {len(ma['rows'])} מרחבים × {len(ma['roles'])} תפקידים")
+    for r in ma["roles"]:
+        print(f"      - {r}")
     return 0
 
 

@@ -1,7 +1,7 @@
 /*
  * בדיקת התאמה בין מנוע ה-JS שבעמוד לבין מנוע הפייתון.
  *
- * הסקריפט שולף את פונקציות החישוב מתוך web/index.html (אותו קוד בדיוק
+ * הסקריפט שולף את פונקציות החישוב מתוך index.html (אותו קוד בדיוק
  * שרץ בדפדפן), מריץ אותן על מטריצת קלטים, ומדפיס JSON להשוואה מול
  * salary_calc/engine.py. ההשוואה עצמה נעשית ב-tests/test_parity.py.
  *
@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const HTML = fs.readFileSync(path.join(__dirname, '..', 'web', 'index.html'), 'utf8');
+const HTML = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
 // חילוץ גוש הסקריפט של העמוד
 const m = HTML.match(/<script>([\s\S]*?)<\/script>/);
@@ -24,9 +24,9 @@ const code = m[1].slice(0, cut);
 
 const sandbox = { Intl, Math, Object, Number, Error, JSON, console };
 vm.createContext(sandbox);
-vm.runInContext(code + '\nthis.__api = {calcField, calcManager, calcLod, estimateNet, interpolate, DATA};', sandbox);
+vm.runInContext(code + '\nthis.__api = {calcField, calcManager, calcLod, calcMagav, resolveMagav, estimateNet, interpolate, DATA, MAGAV};', sandbox);
 
-const { calcField, calcManager, calcLod, estimateNet, DATA } = sandbox.__api;
+const { calcField, calcManager, calcLod, calcMagav, resolveMagav, estimateNet, DATA, MAGAV } = sandbox.__api;
 
 const SENIORITIES = [0, 0.5, 1, 1.75, 2, 2.5, 3, 4.25];
 const GEMULS = ['no_gemul', 'gemul_a'];
@@ -73,6 +73,24 @@ DATA.lod_yasam.forEach((_, index) => {
     out.push({ kind: 'lod', index, gemul, total: +r.total.toFixed(6), basis: r.basis });
   }
 });
+
+// ------- שיוך מג"ב: כל מרחב × כל תפקיד, גם התאים שאי אפשר לתמחר
+for (const row of MAGAV.rows) {
+  for (const role of MAGAV.roles) {
+    const res = resolveMagav(row.sector, role);
+    const rec = {
+      kind: 'magav', sector: row.sector, role,
+      level: res.level || '', priceable: !!res.priceable,
+    };
+    if (res.priceable) {
+      for (const seniority of [0, 1.5, 3]) {
+        out.push({ ...rec, seniority, total: +calcMagav({ sector: row.sector, role, seniority, gemul: 'no_gemul' }).total.toFixed(6) });
+      }
+    } else {
+      out.push(rec);
+    }
+  }
+}
 
 // ------- אומדן נטו
 for (const gross of [9000, 11500, 13368, 17000, 25000, 60000]) {

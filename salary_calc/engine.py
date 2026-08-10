@@ -27,6 +27,48 @@ GEMUL_LABELS = {"no_gemul": "ללא גמול השתלמות", "gemul_a": "כול
 # מתועד עבור דרגת שכר רס"ר בלבד - לא מבצעים המרה לדרגות אחרות.
 EXPENSE_REIMBURSEMENT = {'רס"ר': 344}
 
+# ---------------------------------------------------------------------------
+# שיוך מג"ב: מאיזה תפקיד בטבלת השיוך אפשר להגיע לסכום שכר בפועל.
+#
+# רק תפקיד אחד ניתן לתמחור ודאי: 'לוחם מג"ב' מצוין במפורש כקבוצת שכר 6,
+# ורמות הפעילות שלו (ב / א / א+) זהות בדיוק לאלה שבטבלת השכר של מג"ב.
+# לשאר התפקידים אין טבלת שכר תואמת בקבצי המקור, ולכן הם מוחזרים כפער
+# מפורש עם הסיבה - עדיף על פני ניחוש שנראה כמו תוצאה.
+# ---------------------------------------------------------------------------
+MAGAV_ROLE_TABLES = {
+    'לוחם מג"ב': {"profession_id": "magav_fighter", "district": "כל הארץ"},
+}
+
+MAGAV_ROLE_GAPS = {
+    'לוחם ימ"ס': "המסמך מציין קבוצת שכר 7, ואין בקבצי המקור טבלת שכר לקבוצה 7 במקצועות השטח.",
+    "קצין לוחם ייעודי": "לא צוינה קבוצת שכר ואין בקבצי המקור טבלת שכר לתפקיד זה.",
+    'מיועד ללוחם מג"ב': "לא צוינה קבוצת שכר ואין בקבצי המקור טבלת שכר לתפקיד זה.",
+    "חוקר": (
+        "לא צוינה קבוצת שכר. טבלאות החוקר הקיימות הן קבוצה 5 ומחולקות לפי "
+        "מחוז (כל הארץ / ירושלים / ש\"י) ולא לפי מרחב מג\"ב, ולכן אי אפשר "
+        "לשייך מרחב לטבלה בלי אישור."
+    ),
+    "מנהלות / מטה": (
+        "רמת 'דריכות' מפנה לטבלאות המנהלים, אך לא צוינה קבוצת שכר (1-8) "
+        "ובלעדיה אין סכום יחיד. רמת 'ג' אינה קיימת כלל בטבלאות המנהלים."
+    ),
+}
+
+
+def normalize_level(level: str) -> str:
+    """
+    'א+' ו-"א' +" הן אותה רמת פעילות בשני כתיבים.
+    מסירים גרשיים ורווחים כדי להשוות בין המסמכים.
+    """
+    return level.replace("'", "").replace('"', "").replace(" ", "").strip()
+
+
+def magav_role_key(role: str) -> str:
+    """מסיר את הסוגריים המרובעים ('לוחם מג\"ב [קבוצה6 ]' -> 'לוחם מג\"ב')."""
+    import re as _re
+
+    return _re.sub(r"\[[^\]]*\]", "", role).strip()
+
 
 class CalculationError(ValueError):
     """קלט שאינו קיים בנתוני הסימולציה."""
@@ -138,6 +180,7 @@ class Dataset:
         self.lod = raw["lod_yasam"]
         self.jerusalem = raw["jerusalem"]
         self.station_uplift = self.jerusalem["station_uplift"]
+        self.magav = raw.get("magav_assignment", {"roles": [], "rows": [], "see_other_doc": ""})
 
     # ---------------------------------------------------------------- ניווט
 
@@ -386,6 +429,118 @@ class Dataset:
             if family in rank_text:
                 return family
         return ""
+
+    # ------------------------------------------------------- שיוך מג"ב
+
+    def magav_sectors(self) -> list[str]:
+        return [r["sector"] for r in self.magav["rows"]]
+
+    def magav_roles(self) -> list[str]:
+        return list(self.magav["roles"])
+
+    def magav_level(self, sector: str, role: str) -> str | None:
+        """רמת הפעילות שטבלת השיוך קובעת למרחב ולתפקיד, או None אם התא ריק."""
+        for row in self.magav["rows"]:
+            if row["sector"] == sector:
+                return row["levels"].get(role)
+        raise CalculationError(
+            f"מרחב לא קיים: '{sector}'.\nקיים: {', '.join(self.magav_sectors())}"
+        )
+
+    def resolve_magav(self, sector: str, role: str) -> dict:
+        """
+        מתרגם מרחב + תפקיד לרמת פעילות, ואומר האם אפשר להגיע ממנה לסכום שכר.
+
+        מחזיר תמיד מילון עם 'level', ועם 'priceable' שמציין אם יש טבלת שכר.
+        כשאין - 'reason' מסביר בדיוק מה חסר, במקום להחזיר מספר שגוי.
+        """
+        if role not in self.magav["roles"]:
+            raise CalculationError(
+                f"תפקיד לא קיים: '{role}'.\nקיים: {', '.join(self.magav_roles())}"
+            )
+
+        level = self.magav_level(sector, role)
+        base = {"sector": sector, "role": role, "level": level}
+
+        if not level:
+            return {
+                **base,
+                "priceable": False,
+                "reason": "התא ריק בטבלת השיוך - התפקיד אינו קיים במרחב הזה.",
+            }
+
+        if level == self.magav["see_other_doc"]:
+            return {
+                **base,
+                "priceable": False,
+                "reason": (
+                    "טבלת השיוך מפנה כאן ל'מסמך/דף מקצוע' שאינו נמצא "
+                    "בתיקיית «נתונים למערכת»."
+                ),
+            }
+
+        key = magav_role_key(role)
+        target = MAGAV_ROLE_TABLES.get(key)
+        if not target:
+            return {
+                **base,
+                "priceable": False,
+                "reason": MAGAV_ROLE_GAPS.get(key, "אין טבלת שכר תואמת בקבצי המקור."),
+            }
+
+        # התאמת רמת הפעילות לכתיב שבטבלת השכר
+        wanted = normalize_level(level)
+        for v in self.variants(target["profession_id"]):
+            if v["district"] == target["district"] and normalize_level(v["activity_level"]) == wanted:
+                return {
+                    **base,
+                    "priceable": True,
+                    "profession_id": target["profession_id"],
+                    "district": target["district"],
+                    "activity_level": v["activity_level"],
+                }
+
+        available = [
+            v["activity_level"]
+            for v in self.variants(target["profession_id"])
+            if v["district"] == target["district"]
+        ]
+        return {
+            **base,
+            "priceable": False,
+            "reason": (
+                f"טבלת השכר של {target['profession_id']} אינה כוללת רמת פעילות '{level}'. "
+                f"קיימות: {', '.join(available)}."
+            ),
+        }
+
+    def calculate_magav(
+        self,
+        sector: str,
+        role: str,
+        seniority: float,
+        gemul: GemulLevel = "no_gemul",
+    ) -> Result:
+        """חישוב שכר דרך טבלת השיוך של מג\"ב. נכשל במפורש כשאין טבלת שכר."""
+        r = self.resolve_magav(sector, role)
+        if not r["priceable"]:
+            raise CalculationError(
+                f"אי אפשר לחשב שכר עבור {role} במרחב {sector}"
+                + (f" (רמת פעילות {r['level']})" if r["level"] else "")
+                + f".\n{r['reason']}"
+            )
+
+        result = self.calculate_field(
+            profession_id=r["profession_id"],
+            district=r["district"],
+            activity_level=r["activity_level"],
+            seniority=seniority,
+            gemul=gemul,
+        )
+        result.selection["track"] = "magav"
+        result.selection["sector"] = sector
+        result.selection["role"] = role
+        return result
 
     # ------------------------------------------------------------- השוואות
 

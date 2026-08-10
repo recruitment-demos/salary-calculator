@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE = ROOT / "web" / "template.html"
-OUT = ROOT / "web" / "index.html"
+OUT = ROOT / "index.html"   # שורש המאגר - זהו גם מה ש-GitHub Pages מגיש
 PLACEHOLDER = "/*__DATA__*/"
 
 

@@ -54,9 +54,9 @@ class TestJsPythonParity(unittest.TestCase):
             raise unittest.SkipTest("Node אינו זמין - בדיקת ההתאמה מדולגת")
         cls.node, is_windows = found
 
-        index = ROOT / "web" / "index.html"
+        index = ROOT / "index.html"
         if not index.exists():
-            raise unittest.SkipTest("web/index.html חסר - הרץ python3 tools/build_web.py")
+            raise unittest.SkipTest("index.html חסר - הרץ python3 tools/build_web.py")
 
         proc = subprocess.run(
             [cls.node, to_arg_path(ROOT / "tests" / "parity_check.js", is_windows)],
@@ -73,8 +73,23 @@ class TestJsPythonParity(unittest.TestCase):
 
     def test_dataset_covered(self):
         kinds = {r["kind"] for r in self.js_rows}
-        self.assertEqual(kinds, {"field", "manager", "lod", "net"})
+        self.assertEqual(kinds, {"field", "manager", "lod", "magav", "net"})
         self.assertGreater(len(self.js_rows), 1500)
+
+    def test_magav_parity(self):
+        """גם ההחלטה 'אי אפשר לתמחר' חייבת להיות זהה בשני המנועים."""
+        rows = [r for r in self.js_rows if r["kind"] == "magav"]
+        self.assertTrue(rows)
+        for r in rows:
+            res = self.ds.resolve_magav(r["sector"], r["role"])
+            ctx = f"{r['sector']} / {r['role']}"
+            self.assertEqual(bool(res["priceable"]), r["priceable"], msg=ctx)
+            self.assertEqual(res["level"] or "", r["level"], msg=ctx)
+            if r["priceable"]:
+                py = self.ds.calculate_magav(
+                    sector=r["sector"], role=r["role"], seniority=r["seniority"]
+                )
+                self.assertAlmostEqual(py.monthly_gross, r["total"], places=4, msg=ctx)
 
     def test_field_parity(self):
         rows = [r for r in self.js_rows if r["kind"] == "field"]

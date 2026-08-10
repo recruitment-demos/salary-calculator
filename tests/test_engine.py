@@ -218,6 +218,72 @@ class TestResultShape(unittest.TestCase):
         self.assertEqual(len(DS.manager_ratings()), 3)
 
 
+class TestMagavAssignment(unittest.TestCase):
+    """טבלת השיוך של מג"ב: מרחב × תפקיד -> רמת פעילות -> שכר (או פער מפורש)."""
+
+    def test_matrix_shape(self):
+        self.assertEqual(len(DS.magav_sectors()), 13)
+        self.assertEqual(len(DS.magav_roles()), 6)
+
+    def test_fighter_is_priceable_everywhere_it_appears(self):
+        role = next(r for r in DS.magav_roles() if r.startswith('לוחם מג"ב'))
+        priced = 0
+        for sector in DS.magav_sectors():
+            res = DS.resolve_magav(sector, role)
+            if not res["level"]:
+                continue  # מטה - התא ריק
+            self.assertTrue(res["priceable"], msg=f"{sector}: {res.get('reason')}")
+            priced += 1
+        self.assertEqual(priced, 12)
+
+    def test_level_normalization(self):
+        # במסמך השיוך כתוב 'א+', ובטבלת השכר "א' +" - אותה רמה
+        res = DS.resolve_magav('ימ"מ', next(r for r in DS.magav_roles() if r.startswith('לוחם מג"ב')))
+        self.assertEqual(res["level"], "א+")
+        self.assertEqual(res["activity_level"], "א' +")
+
+    def test_matches_magav_salary_table(self):
+        role = next(r for r in DS.magav_roles() if r.startswith('לוחם מג"ב'))
+        via_magav = DS.calculate_magav('ימ"מ', role, seniority=0).monthly_gross
+        direct = DS.calculate_field("magav_fighter", "כל הארץ", "א' +", 0).monthly_gross
+        self.assertEqual(via_magav, direct)
+
+    def test_group_7_reported_as_gap_not_guessed(self):
+        role = next(r for r in DS.magav_roles() if r.startswith('לוחם ימ"ס'))
+        res = DS.resolve_magav("דרום", role)
+        self.assertFalse(res["priceable"])
+        self.assertIn("קבוצה 7", res["reason"])
+        with self.assertRaises(CalculationError):
+            DS.calculate_magav("דרום", role, 0)
+
+    def test_see_other_doc_reported(self):
+        res = DS.resolve_magav('איו"ש', "חוקר")
+        self.assertFalse(res["priceable"])
+        self.assertIn("דף מקצוע", res["reason"])
+
+    def test_empty_cell_reported(self):
+        role = next(r for r in DS.magav_roles() if r.startswith('לוחם מג"ב'))
+        res = DS.resolve_magav("מטה", role)
+        self.assertFalse(res["priceable"])
+        self.assertIsNone(res["level"])
+
+    def test_unknown_inputs(self):
+        with self.assertRaises(CalculationError):
+            DS.resolve_magav("מרחב לא קיים", DS.magav_roles()[0])
+        with self.assertRaises(CalculationError):
+            DS.resolve_magav("דרום", "תפקיד לא קיים")
+
+    def test_every_cell_is_either_priced_or_explained(self):
+        """אין תא שמחזיר 'לא ניתן' בלי סיבה - זה מה שהופך את הפערים לשימושיים."""
+        for sector in DS.magav_sectors():
+            for role in DS.magav_roles():
+                res = DS.resolve_magav(sector, role)
+                if res["priceable"]:
+                    self.assertIn("activity_level", res)
+                else:
+                    self.assertTrue(res["reason"].strip(), msg=f"{sector}/{role}")
+
+
 class TestDisplayRounding(unittest.TestCase):
     """
     התצוגה ב-CLI חייבת לעגל כמו Math.round של JS (חצי כלפי מעלה).

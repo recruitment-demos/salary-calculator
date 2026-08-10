@@ -78,7 +78,9 @@ def print_result(r: Result, net_credit_points: float | None) -> None:
     sel = r.selection
     print()
     print(LINE)
-    if sel["track"] == "field":
+    if sel["track"] == "magav":
+        title = f"מג\"ב · {sel['sector']} · {sel['role']} (רמת פעילות {sel['activity_level']})"
+    elif sel["track"] == "field":
         title = f"{sel['profession']} · {sel['district']} · רמת פעילות {sel['activity_level']}"
     elif sel["track"] == "manager":
         title = f"מנהלים · קבוצת שכר {sel['salary_group']} · {sel['rating']}"
@@ -152,6 +154,45 @@ def print_curve(ds: Dataset, args) -> None:
     print()
 
 
+def print_magav_matrix(ds: Dataset) -> None:
+    """טבלת הכיסוי של שיוך מג"ב: מה אפשר לתמחר, ומה חסר וכמה."""
+    print()
+    print(LINE)
+    print('שיוך מג"ב - מה ניתן לתמחור ומה חסר')
+    print(LINE)
+
+    priceable = 0
+    empty = 0
+    reasons: dict[str, int] = {}
+
+    for sector in ds.magav_sectors():
+        print(f"\n  {sector}")
+        for role in ds.magav_roles():
+            r = ds.resolve_magav(sector, role)
+            label = f"    {role:<24}"
+            if r["priceable"]:
+                amount = ds.calculate_magav(sector, role, 0).monthly_gross
+                print(f"{label} {r['level']:<10} {money(amount):>12}")
+                priceable += 1
+            elif not r["level"]:
+                print(f"{label} {'—':<10} (לא קיים במרחב)")
+                empty += 1
+            else:
+                print(f"{label} {r['level']:<10} ⚠ אין טבלת שכר")
+                reasons[r["reason"]] = reasons.get(r["reason"], 0) + 1
+
+    print()
+    print(LINE)
+    print(f"  ניתן לתמחור : {priceable} תאים")
+    print(f"  חסר נתון    : {sum(reasons.values())} תאים")
+    print(f"  לא רלוונטי  : {empty} תאים (התפקיד אינו קיים במרחב)")
+    print(LINE)
+    print("\n  סיבות החוסר:")
+    for reason, n in sorted(reasons.items(), key=lambda x: -x[1]):
+        print(f"\n    [{n} תאים] {reason}")
+    print()
+
+
 def resolve_defaults(ds: Dataset, args) -> None:
     """משלים מחוז ורמת פעילות כשלא צוינו, אם יש רק אפשרות אחת סבירה."""
     variants = ds.variants(args.profession)
@@ -186,6 +227,15 @@ def build_parser() -> argparse.ArgumentParser:
     m.add_argument("--manager-group", type=int, choices=range(1, 9), help="קבוצת שכר 1-8")
     m.add_argument("--rating", help="דירוג שכר")
 
+    g2 = p.add_argument_group('מג"ב לפי מרחב')
+    g2.add_argument("--sector", help='מרחב מג"ב')
+    g2.add_argument("--role", help="תפקיד בטבלת השיוך")
+    g2.add_argument(
+        "--magav-matrix",
+        action="store_true",
+        help="טבלת כיסוי מלאה: מה ניתן לתמחור ומה חסר",
+    )
+
     l = p.add_argument_group('תחנת לוד')
     l.add_argument("--lod", action="store_true", help='סייר יס"מ תחנת לוד')
     l.add_argument("--rifleman", action="store_true", help="רובאי 05")
@@ -214,6 +264,25 @@ def main(argv: list[str] | None = None) -> int:
     ds = load_dataset()
 
     try:
+        if args.magav_matrix:
+            print_magav_matrix(ds)
+            return 0
+
+        if args.sector or args.role:
+            if not (args.sector and args.role):
+                raise CalculationError("נדרשים גם --sector וגם --role")
+            result = ds.calculate_magav(
+                sector=args.sector,
+                role=args.role,
+                seniority=args.seniority,
+                gemul=args.gemul,
+            )
+            if args.json:
+                print(json.dumps(result.as_dict(), ensure_ascii=False, indent=2))
+            else:
+                print_result(result, args.net)
+            return 0
+
         if args.list or not (args.profession or args.manager_group or args.lod):
             print_catalog(ds)
             if not (args.profession or args.manager_group or args.lod):
